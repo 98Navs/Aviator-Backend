@@ -1,4 +1,5 @@
-//src/repositories/UserRepository.mjs
+// src/repositories/UserRepository.mjs
+import bcrypt from 'bcrypt';
 import User from '../models/UserModel.mjs';
 
 class UserRepository {
@@ -53,6 +54,60 @@ class UserRepository {
             throw new Error('Error deleting user by ID: ' + error.message);
         }
     }
+
+    static async getUserByEmail(email) {
+        try {
+            return await User.findOne({ email });
+        } catch (error) {
+            throw new Error('Error getting user by email: ' + error.message);
+        }
+    }
+
+    static async getUserByMobile(mobile) {
+        try {
+            return await User.findOne({ mobile });
+        } catch (error) {
+            throw new Error('Error getting user by mobile: ' + error.message);
+        }
+    }
+
+    static async getUserByUserName(userName) {
+        try {
+            return await User.findOne({ userName });
+        } catch (error) {
+            throw new Error('Error getting user by username: ' + error.message);
+        }
+    }
+
+    static async getUserByPromoCode(promoCode) {
+        try {
+            return await User.findOne({ promoCode });
+        } catch (error) {
+            throw new Error('Error getting user by promo code: ' + error.message);
+        }
+    }
+
+    static async getUserByReferenceCode(promoCode) {
+        try {
+            return await User.findOne({ promoCode });
+        } catch (error) {
+            throw new Error('Error getting user by reference code: ' + error.message);
+        }
+    }
+
+    static async getUserByUserId(userId) {
+        try {
+            return await User.findOne({ userId });
+        } catch (error) {
+            throw new Error('Error getting user by userId: ' + error.message);
+        }
+    }
+
+    static async hashPassword(password) {
+        const saltRounds = 10;
+        return await bcrypt.hash(password, saltRounds);
+    }
+    
 }
 
 export default UserRepository;

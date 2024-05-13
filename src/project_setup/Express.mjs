@@ -20,8 +20,8 @@ export default async function setupExpressApp() {
     app.use(UserRoutes);
 
     // Start the server
-    app.listen(3000, () => {
-        console.log('Server is running on port 3000');
+    app.listen(process.env.PORT, () => {
+        console.log('Server is running on port 8002');
     });
 
     return app;
