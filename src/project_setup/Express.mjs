@@ -3,6 +3,7 @@ import express from "express";
 import cors from "cors";
 import cookieParser from 'cookie-parser';
 import UserRoutes from '../routes/UserRoutes.mjs';
+import BankRoutes from '../routes/BankFileRoutes.mjs';
 
 export default async function setupExpressApp() {
     const app = express();
@@ -18,6 +19,7 @@ export default async function setupExpressApp() {
 
     // Mount user routes
     app.use(UserRoutes);
+    app.use(BankRoutes);
 
     // Start the server
     app.listen(process.env.PORT, () => {
