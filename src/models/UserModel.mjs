@@ -21,7 +21,8 @@ const userSchema = new Schema({
     promoCode: { type: String, default: () => Math.random().toString(36).slice(2, 10).toUpperCase() },
     referenceCode: { type: String, default: 'admin' },
     weightage: { type: Number, default: 0 },
-    status: { type: String, default: 'active' }
+    status: { type: String, default: 'active' },
+    otp: { type: Number, default: null}
 }, {
     timestamps: true
 });

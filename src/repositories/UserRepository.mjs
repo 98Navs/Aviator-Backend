@@ -103,6 +103,22 @@ class UserRepository {
         }
     }
 
+    static async updateUserPassword(userId, newPassword) {
+        try {
+            const user = await User.findOne({ userId });
+            if (!user) {
+                throw new Error('User not found.');
+            }
+
+            user.password = newPassword;
+            await user.save();
+
+            return { message: 'Password updated successfully.' };
+        } catch (error) {
+            throw new Error(error.message);
+        }
+    }
+
     static async hashPassword(password) {
         const saltRounds = 10;
         return await bcrypt.hash(password, saltRounds);
