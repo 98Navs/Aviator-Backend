@@ -23,7 +23,7 @@ class UserController {
             if (!user) return res.status(400).json({ error: 'Please provide email, userId, or mobile.' });
             let existingUser = await UserController.getUser(user);
             if (!existingUser) { return res.status(404).json({ error: 'User not found.' }); }
-            if (!password) return res.status(400).json({ error: 'Please provide new password' });
+            if (!password) return res.status(400).json({ error: 'Please provide password' });
             const isPasswordValid = await bcrypt.compare(password, existingUser.password);
             if (!isPasswordValid) { return res.status(401).json({ error: 'Invalid credentials.' }); }
             const token = await GenerateSignature({ userId: existingUser.userId, email: existingUser.email, role: existingUser.role }, res);
@@ -37,6 +37,9 @@ class UserController {
         try {
             const { email } = req.body;
             if (!email) return res.status(400).json({ error: 'Please provide an email.' });
+
+            const emailValidator = (val) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val);
+            if (!emailValidator(email)) { return res.status(400).json({ error: 'Invalid email format.' }); }
 
             const user = await UserController.getUserByEmail(email);
             if (!user) return res.status(404).json({ error: 'User not found.' });
