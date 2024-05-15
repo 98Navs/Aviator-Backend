@@ -129,11 +129,11 @@ class UserController {
 
     static async validateUserData(userData) {
         const { userName, email, mobile, promoCode, password, userId, referenceCode } = userData;
-        userData.userName = userName.toLowerCase();
-        userData.email = email.toLowerCase();
         const requiredFields = ['userName', 'email', 'mobile', 'password'];
         const missingFields = requiredFields.filter(field => !userData[field] || (userData[field].trim && userData[field].trim() === ''));
         if (missingFields.length > 0) return { error: `Missing or empty fields: ${missingFields.join(', ')}` };
+        userData.userName = userName.toLowerCase();
+        userData.email = email.toLowerCase();
         const validators = {
             userName: (val) => /^[a-zA-Z]+(?: [a-zA-Z]+)*$/.test(val) && val.length >= 4,
             email: (val) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val),
