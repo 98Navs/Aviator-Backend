@@ -22,9 +22,9 @@ class UserController {
             const { user, password } = req.body;
             if (!user) return res.status(400).json({ error: 'Please provide email, userId, or mobile.' });
             let existingUser = await UserController.getUser(user);
-            if (!existingUser || !(await bcrypt.compare(password, existingUser.password))) {
-                return res.status(401).json({ error: 'Invalid credentials.' });
-            }
+            if (!existingUser) { return res.status(404).json({ error: 'User not found.' }); }
+            const isPasswordValid = await bcrypt.compare(password, existingUser.password);
+            if (!isPasswordValid) { return res.status(401).json({ error: 'Invalid credentials.' }); }
             const token = await GenerateSignature({ userId: existingUser.userId, email: existingUser.email, role: existingUser.role }, res);
             res.json({ message: 'Sign in successful!', user: { userId: existingUser.userId, email: existingUser.email, token } });
         } catch (error) {
