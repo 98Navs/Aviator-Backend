@@ -23,7 +23,7 @@ export async function GenerateSignature(payload, res) {
 export async function sendEmail(to, subject, text) {
     try {
         await transporter.sendMail({
-            from: 'vinay.singh5497@gmail.com',
+            from: 'admin@scriza.in',
             to,
             subject,
             text
@@ -37,12 +37,12 @@ export async function sendEmail(to, subject, text) {
 }
 
 const transporter = nodemailer.createTransport({
-    host: "smtp.gmail.com",
-    port: 587,
+    host: "sandbox.smtp.mailtrap.io",
+    port: 2525,
     secure: false,
     auth: {
-        user: 'vinay.singh5497@gmail.com',
-        pass: 'bcackyyamyacslqa'
+        user: '942cb39e2f2ca8',
+        pass: '3bad5a04640988'
     }
 });
 
