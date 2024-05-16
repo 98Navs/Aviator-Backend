@@ -13,8 +13,11 @@ router.post('/signIn', UserController.signIn);
 // POST /forgetPassword
 router.post('/forgetPassword', UserController.forgetPassword);
 
+// POST /otp
+router.post('/otp', UserController.otp);
+
 // POST /forgetPassword
-router.post('/resetPassword', UserController.resetPassword);
+router.post('/changePassword', UserController.changePassword);
 
 // GET /users - Get all users
 router.get('/users', UserController.getAllUsers);

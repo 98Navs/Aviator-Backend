@@ -27,7 +27,7 @@ class UserController {
             if (!isPasswordValid) return res.status(401).json({ success: false, error: 'Invalid credentials.' });
 
             const token = await GenerateSignature({ userId: existingUser.userId, email: existingUser.email, role: existingUser.role }, res);
-            res.json({ success: true, message: 'Sign in successful!', user: { userId: existingUser.userId, email: existingUser.email, token } });
+            res.status(200).json({ success: true, message: 'Sign in successful!', user: { userId: existingUser.userId, email: existingUser.email, token } });
         } catch (error) {
             res.status(400).json({ success: false, error: error.message });
         }
@@ -39,7 +39,7 @@ class UserController {
             if (!email) return res.status(400).json({ success: false, error: 'Please provide email.' });
             if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return res.status(400).json({ success: false, error: 'Invalid email format.' });
 
-            const user = await UserController.getUserByEmail(email);
+            const user = await UserRepository.getUserByEmail(email);
             if (!user) return res.status(404).json({ success: false, error: 'User not found.' });
 
             const otp = Math.floor(100000 + Math.random() * 900000);
@@ -47,29 +47,36 @@ class UserController {
             await user.save();
             await sendEmail(email, 'Password Reset OTP', `Your OTP for password reset is: ${otp}`);
 
-            res.json({ success: true, message: 'OTP sent to your email.' });
+            res.status(200).json({ success: true, message: 'OTP sent to your email.' });
         } catch (error) {
             res.status(400).json({ success: false, error: error.message });
         }
     }
 
-    static async resetPassword(req, res) {
+    static async otp(req, res) {
         try {
-            const { email, otp, password } = req.body;
-            if (!email || !otp || !password) return res.status(400).json({ success: false, error: 'Please provide email, OTP, and new password.' });
+            const { email, otp } = req.body;
+            if (!email || !otp ) return res.status(400).json({ success: false, error: 'Please provide OTP.' });
 
-            const { error } = await UserController.validatePassword(password);
-            if (error) return res.status(400).json({ success: false, error });
-
-            const user = await UserController.getUserByEmail(email);
+            const user = await UserRepository.getUserByEmail(email);
             if (!user || otp !== user.otp) return res.status(401).json({ success: false, error: 'Invalid OTP.' });
-
-            const hashedPassword = await UserRepository.hashPassword(password);
-            await UserRepository.updateUserPassword(user.userId, hashedPassword);
             user.otp = null;
             await user.save();
-
-            res.json({ success: true, message: 'Password reset successfully.' });
+            res.status(200).json({ success: true, message: 'OTP verified successfully.' });
+        } catch (error) {
+            res.status(400).json({ success: false, error: error.message });
+        }
+    }
+    
+    static async changePassword(req, res) {
+        try {
+            const { email, password } = req.body;
+            if (!email || !password) return res.status(400).json({ success: false, error: 'Please provide the new password.' });
+            if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,}$/.test(password)) return res.status(400).json({ success: false, error: 'Password must contain at least 8 characters, including uppercase, lowercase, numbers, and special characters.' });
+            const user = await UserRepository.getUserByEmail(email);
+            const hashedPassword = await UserRepository.hashPassword(password);
+            await UserRepository.updateUserPassword(user.userId, hashedPassword);
+            res.status(200).json({ success: true, message: 'Password reset successfully.' });
         } catch (error) {
             res.status(400).json({ success: false, error: error.message });
         }
@@ -78,7 +85,7 @@ class UserController {
     static async getAllUsers(req, res) {
         try {
             const users = await UserRepository.getAllUsers();
-            res.json({ success: true, message: 'Users fetched successfully', users });
+            res.status(200).json({ success: true, message: 'Users fetched successfully', users });
         } catch (error) {
             res.status(500).json({ success: false, error: error.message });
         }
@@ -88,11 +95,9 @@ class UserController {
         try {
             const { userId } = req.params;
             if (!/^[0-9]{6}$/.test(userId)) return res.status(400).json({ success: false, error: 'Invalid userId format.' });
-
             const user = await UserRepository.getUserByUserId(userId);
             if (!user) return res.status(404).json({ success: false, error: 'User not found.' });
-
-            res.json({ success: true, message: `Data fetched successfully for userId ${userId}`, user });
+            res.status(200).json({ success: true, message: `Data fetched successfully for userId ${userId}`, user });
         } catch (error) {
             res.status(500).json({ success: false, error: 'Internal server error.' });
         }
@@ -102,11 +107,9 @@ class UserController {
         try {
             const { userId } = req.params;
             if (!/^[0-9]{6}$/.test(userId)) return res.status(400).json({ success: false, error: 'Invalid userId format.' });
-
             const updatedUser = await UserRepository.updateUserByUserId(userId, req.body);
             if (!updatedUser) return res.status(404).json({ success: false, error: 'User not found.' });
-
-            res.json({ success: true, message: `Data updated successfully for userId ${userId}`, updatedUser });
+            res.status(200).json({ success: true, message: `Data updated successfully for userId ${userId}`, updatedUser });
         } catch (error) {
             res.status(500).json({ success: false, error: error.message });
         }
@@ -116,11 +119,9 @@ class UserController {
         try {
             const { userId } = req.params;
             if (!/^[0-9]{6}$/.test(userId)) return res.status(400).json({ success: false, error: 'Invalid userId format.' });
-
             const deleteUser = await UserRepository.deleteUserByUserId(userId);
             if (!deleteUser) return res.status(404).json({ success: false, error: 'User not found.' });
-
-            res.json({ success: true, message: `Data deleted successfully for userId ${userId}`, deleteUser });
+            res.status(200).json({ success: true, message: `Data deleted successfully for userId ${userId}`, deleteUser });
         } catch (error) {
             res.status(500).json({ success: false, error: error.message });
         }
@@ -161,12 +162,6 @@ class UserController {
         };
 
         return checkDuplicates();
-    }
-
-    static async validatePassword(password) {
-        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,}$/;
-        if (!passwordRegex.test(password)) return { error: 'Password must contain at least 8 characters, including uppercase, lowercase, numbers, and special characters.' };
-        return { error: null };
     }
 }
 
