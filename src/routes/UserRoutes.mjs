@@ -25,6 +25,9 @@ router.get('/users', UserController.getAllUsers);
 // GET /users/:id - Get a user by ID
 router.get('/users/:userId', UserController.getUserByUserId);
 
+router.get('/wallet/:userId', UserController.getWalletByUserId);
+
+
 // PUT /users/:id - Update a user by ID
 router.put('/users/:userId', UserController.updateUserByUserId);
 

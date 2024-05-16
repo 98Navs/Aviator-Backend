@@ -22,17 +22,24 @@ const userSchema = new Schema({
     referenceCode: { type: String, default: 'admin' },
     weightage: { type: Number, default: 0 },
     status: { type: String, default: 'active' },
-    otp: { type: Number, default: null}
+    otp: { type: Number, default: null }
 }, {
     timestamps: true
 });
 
-// Define toJSON method
+// Define virtual wallet property
+userSchema.virtual('wallet').get(function () {
+    return this.depositAmount + this.bonusAmount + this.commissionAmount;
+});
+
+// Define toJSON method to include virtuals
 userSchema.set('toJSON', {
+    virtuals: true,
     transform: function (doc, ret) {
         // Remove sensitive fields
         delete ret.password;
         delete ret.image;
+        delete ret.otp;
         ret.createdAt = ret.createdAt.toISOString();
         ret.updatedAt = ret.updatedAt.toISOString();
     }

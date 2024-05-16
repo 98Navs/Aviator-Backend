@@ -21,11 +21,9 @@ class UserController {
             if (!user) return res.status(400).json({ success: false, error: 'Please provide email, userId, or mobile.' });
             const existingUser = await UserController.getUser(user);
             if (!existingUser) return res.status(400).json({ success: false, error: 'User not found.' });
-
             if (!password) return res.status(400).json({ success: false, error: 'Please provide password.' });
             const isPasswordValid = await bcrypt.compare(password, existingUser.password);
             if (!isPasswordValid) return res.status(401).json({ success: false, error: 'Invalid credentials.' });
-
             const token = await GenerateSignature({ userId: existingUser.userId, email: existingUser.email, role: existingUser.role }, res);
             res.status(200).json({ success: true, message: 'Sign in successful!', user: { userId: existingUser.userId, email: existingUser.email, token } });
         } catch (error) {
@@ -38,15 +36,12 @@ class UserController {
             const { email } = req.body;
             if (!email) return res.status(400).json({ success: false, error: 'Please provide email.' });
             if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return res.status(400).json({ success: false, error: 'Invalid email format.' });
-
             const user = await UserRepository.getUserByEmail(email);
             if (!user) return res.status(404).json({ success: false, error: 'User not found.' });
-
             const otp = Math.floor(100000 + Math.random() * 900000);
             user.otp = otp;
             await user.save();
             await sendEmail(email, 'Password Reset OTP', `Your OTP for password reset is: ${otp}`);
-
             res.status(200).json({ success: true, message: 'OTP sent to your email.' });
         } catch (error) {
             res.status(400).json({ success: false, error: error.message });
@@ -57,7 +52,6 @@ class UserController {
         try {
             const { email, otp } = req.body;
             if (!email || !otp ) return res.status(400).json({ success: false, error: 'Please provide OTP.' });
-
             const user = await UserRepository.getUserByEmail(email);
             if (!user || otp !== user.otp) return res.status(401).json({ success: false, error: 'Invalid OTP.' });
             user.otp = null;
@@ -103,6 +97,18 @@ class UserController {
         }
     }
 
+    static async getWalletByUserId(req, res) {
+        try {
+            const { userId } = req.params;
+            if (!/^[0-9]{6}$/.test(userId)) return res.status(400).json({ success: false, error: 'Invalid userId format.' });
+            const user = await UserRepository.getUserByUserId(userId);
+            if (!user) return res.status(404).json({ success: false, error: 'User not found.' });
+            res.status(200).json({ success: true, message: `Wallet data fetched successfully for userId ${userId}`, wallet: user.wallet, depositAmount: user.depositAmount, bonusAmount: user.bonusAmount, commissionAmount: user.commissionAmount });
+        } catch (error) {
+            res.status(500).json({ success: false, error: 'Internal server error.' });
+        }
+    }
+
     static async updateUserByUserId(req, res) {
         try {
             const { userId } = req.params;
@@ -131,11 +137,9 @@ class UserController {
 
     static async getUser(user) {
         if (typeof user !== 'string') throw new Error('Invalid email, userId, or mobile provided.');
-
         if (user.includes('@')) return UserRepository.getUserByEmail(user.toLowerCase());
         if (/^\d{10}$/.test(user)) return UserRepository.getUserByMobile(parseInt(user, 10));
         if (!isNaN(user)) return UserRepository.getUserByUserId(user);
-
         throw new Error('Invalid email, userId, or mobile provided.');
     }
 
@@ -162,7 +166,6 @@ class UserController {
             }
             return { error: null, userData: arguments[0] };
         };
-
         return checkDuplicates();
     }
 }
