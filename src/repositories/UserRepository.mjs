@@ -31,27 +31,24 @@ class UserRepository {
         }
     }
 
-    static async updateUserById(userId, userData) {
+    static async updateUserByUserId(userId, userData) {
         try {
-            const user = await User.findByIdAndUpdate(userId, userData, { new: true });
-            if (!user) {
-                throw new Error('User not found');
-            }
+            const user = await User.findOneAndUpdate({ userId }, userData, { new: true });
+            if (!user) { throw new Error('User not found'); }
             return user;
         } catch (error) {
-            throw new Error('Error updating user by ID: ' + error.message);
+            throw new Error('Error updating user by userId: ' + error.message);
         }
     }
 
-    static async deleteUserById(userId) {
+
+    static async deleteUserByUserId(userId) {
         try {
-            const user = await User.findByIdAndDelete(userId);
-            if (!user) {
-                throw new Error('User not found');
-            }
+            const user = await User.findOneAndDelete({ userId });
+            if (!user) { throw new Error('User not found'); }
             return user;
         } catch (error) {
-            throw new Error('Error deleting user by ID: ' + error.message);
+            throw new Error('Error deleting user by userId: ' + error.message);
         }
     }
 

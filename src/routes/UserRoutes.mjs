@@ -20,12 +20,12 @@ router.post('/resetPassword', UserController.resetPassword);
 router.get('/users', UserController.getAllUsers);
 
 // GET /users/:id - Get a user by ID
-router.get('/users/:id', UserController.getUserById);
+router.get('/users/:userId', UserController.getUserByUserId);
 
 // PUT /users/:id - Update a user by ID
-router.put('/users/:id', UserController.updateUserById);
+router.put('/users/:userId', UserController.updateUserByUserId);
 
 // DELETE /users/:id - Delete a user by ID
-router.delete('/users/:id', UserController.deleteUserById);
+router.delete('/users/:userId', UserController.deleteUserByUserId);
 
 export default router;
