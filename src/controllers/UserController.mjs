@@ -107,8 +107,9 @@ class UserController {
         try {
             const { userId } = req.params;
             if (!/^[0-9]{6}$/.test(userId)) return res.status(400).json({ success: false, error: 'Invalid userId format.' });
+            const user = await UserRepository.getUserByUserId(userId);
+            if (!user) return res.status(404).json({ success: false, error: 'User not found.' });
             const updatedUser = await UserRepository.updateUserByUserId(userId, req.body);
-            if (!updatedUser) return res.status(404).json({ success: false, error: 'User not found.' });
             res.status(200).json({ success: true, message: `Data updated successfully for userId ${userId}`, updatedUser });
         } catch (error) {
             res.status(500).json({ success: false, error: error.message });
@@ -119,8 +120,9 @@ class UserController {
         try {
             const { userId } = req.params;
             if (!/^[0-9]{6}$/.test(userId)) return res.status(400).json({ success: false, error: 'Invalid userId format.' });
+            const user = await UserRepository.getUserByUserId(userId);
+            if (!user) return res.status(404).json({ success: false, error: 'User not found.' });
             const deleteUser = await UserRepository.deleteUserByUserId(userId);
-            if (!deleteUser) return res.status(404).json({ success: false, error: 'User not found.' });
             res.status(200).json({ success: true, message: `Data deleted successfully for userId ${userId}`, deleteUser });
         } catch (error) {
             res.status(500).json({ success: false, error: error.message });
