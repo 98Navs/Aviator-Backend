@@ -1,36 +1,28 @@
+//src/project_setup/Utils.js
 import jwt from 'jsonwebtoken';
 import nodemailer from 'nodemailer';
 import multer from 'multer';
 import url from 'url';
 
-export const ValidateSignature = async (req) => {
+const validateRole = async (req, roles) => {
     try {
         const signature = req.headers.authorization?.split(" ")[1] || req.cookies.jwt;
         if (!signature) {
             console.log('Token not found in headers or cookies');
             return false;
         }
-        req.user = await jwt.verify(signature, process.env.APP_SECRET);
-        return true;
-    } catch (error) {
-        console.log(error);
-        return false;
-    }
-};
-
-export const ValidateAdminSignature = async (req) => {
-    try {
-        if (await ValidateSignature(req)) {
-            const { role } = req.user;
-            if (role === 'admin' || role === 'super-admin') return true;
-            console.log('User is not an admin');
-        }
+        req.user = jwt.verify(signature, process.env.APP_SECRET);
+        if (roles.includes(req.user.role)) return true;
+        console.log(`User role ${req.user.role} is not authorized`);
         return false;
     } catch (error) {
         console.error(error);
         return false;
     }
 };
+export const ValidateAdminSignature = (req) => validateRole(req, ['admin']);
+export const ValidateAffiliateSignature = (req) => validateRole(req, ['affiliate', 'admin']);
+export const ValidateUserSignature = (req) => validateRole(req, ['user', 'admin']);
 
 const FILE_TYPE_MAP = { 'image/png': 'png', 'image/jpeg': 'jpeg', 'image/jpg': 'jpg' };
 

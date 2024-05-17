@@ -1,5 +1,5 @@
 //src/project_setup/Middleware.js
-import { ValidateSignature, ValidateAdminSignature } from "../project_setup/Utils.mjs";
+import { ValidateAdminSignature, ValidateAffiliateSignature, ValidateUserSignature } from "../project_setup/Utils.mjs";
 
 class Middleware {
     static async validate(req, res, next, validator, notAuthorizedMessage) {
@@ -13,12 +13,14 @@ class Middleware {
         }
     }
 
-    static user(req, res, next) {
-        Middleware.validate(req, res, next, ValidateSignature, "Not Authorized as user");
-    }
-
     static admin(req, res, next) {
         Middleware.validate(req, res, next, ValidateAdminSignature, "NOT Authorized as user is Not Admin");
+    }
+    static affiliate(req, res, next) {
+        Middleware.validate(req, res, next, ValidateAffiliateSignature, "NOT Authorized as user is Not affiliate");
+    }
+    static user(req, res, next) {
+        Middleware.validate(req, res, next, ValidateUserSignature, "Not Authorized as user");
     }
 }
 

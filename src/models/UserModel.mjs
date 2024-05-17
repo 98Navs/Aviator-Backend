@@ -18,6 +18,7 @@ const userSchema = new Schema({
     lifetimeNumberOfDeposit: { type: Number, default: 0 },
     lifetimeNumberOfWithdrawal: { type: Number, default: 0 },
     playedAmount: { type: Number, default: 0 },
+    commission : {type: Number, default: 0},
     playedGame: { type: String, default: 'none' },
     promoCode: { type: String, default: () => Math.random().toString(36).slice(2, 10).toUpperCase() },
     referenceCode: { type: String, default: 'admin' },
