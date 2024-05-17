@@ -18,25 +18,50 @@ class UserController {
     static async signIn(req, res) {
         try {
             const { user, password } = req.body;
-            if (!user) return res.status(400).json({ error: 'Please provide email, userId, or mobile.' });
-            let existingUser = null;
-            if (typeof user === 'string') {
-                if (user.includes('@')) existingUser = await UserRepository.getUserByEmail(user.toLowerCase());
-                else if (/^\d{10}$/.test(user)) existingUser = await UserRepository.getUserByMobile(parseInt(user, 10));
-                else if (!isNaN(user)) existingUser = await UserRepository.getUserByUserId(user);
-            } else {
-                return res.status(400).json({ error: 'Invalid email, userId, or mobile provided.' });
-            }
-            if (!existingUser || !(await bcrypt.compare(password, existingUser.password))) {
-                return res.status(401).json({ error: 'Invalid credentials.' });
-            }
+            if (!user) return res.status(400).json({ success: false, error: 'Please provide email, userId, or mobile.' });
+            const existingUser = await UserController.getUser(user);
+            if (!existingUser) return res.status(400).json({ success: false, error: 'User not found.' });
+            if (!password) return res.status(400).json({ success: false, error: 'Please provide password.' });
+            if (!await bcrypt.compare(password, existingUser.password)) return res.status(401).json({ success: false, error: 'Invalid credentials.' });
             const token = await GenerateSignature({ userId: existingUser.userId, email: existingUser.email, objectId: existingUser._id, role: existingUser.role }, res);
-            res.json({ message: 'Sign in successful!', user: { userId: existingUser.userId, email: existingUser.email, token } });
+            res.status(200).json({ success: true, message: 'Sign in successful!', user: { userId: existingUser.userId, email: existingUser.email, token } });
         } catch (error) {
             res.status(400).json({ success: false, error: error.message });
         }
     }
-    
+
+    static async forgetPassword(req, res) {
+        try {
+            const { email } = req.body;
+            if (!email) return res.status(400).json({ success: false, error: 'Please provide email.' });
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return res.status(400).json({ success: false, error: 'Invalid email format.' });
+            const user = await UserRepository.getUserByEmail(email);
+            if (!user) return res.status(404).json({ success: false, error: 'User not found.' });
+            const otp = Math.floor(100000 + Math.random() * 900000);
+            user.otp = otp;
+            await user.save();
+            await sendEmail(email, 'Password Reset OTP', `Your OTP for password reset is: ${otp}`);
+            res.status(200).json({ success: true, message: 'OTP sent to your email.' });
+        } catch (error) {
+            res.status(400).json({ success: false, error: error.message });
+        }
+    }
+
+    static async otp(req, res) {
+        try {
+            const { email, otp } = req.body;
+            if (!email || !otp) return res.status(400).json({ success: false, error: 'Please provide OTP.' });
+            const user = await UserRepository.getUserByEmail(email);
+            if (!user) return res.status(404).json({ success: false, error: 'User not found.' });
+            if (otp !== user.otp) return res.status(401).json({ success: false, error: 'Invalid OTP.' });
+            user.otp = null;
+            await user.save();
+            res.status(200).json({ success: true, message: 'OTP verified successfully.' });
+        } catch (error) {
+            res.status(400).json({ success: false, error: error.message });
+        }
+    }
+
     static async changePassword(req, res) {
         try {
             const { email, password } = req.body;
@@ -68,7 +93,7 @@ class UserController {
             res.status(200).json({ success: true, message: `Data fetched successfully for userId ${userId}`, user });
         } catch (error) {
             if (error instanceof ValidationError) { res.status(400).json({ success: false, error: error.message }); }
-            else if (error instanceof NotFoundError) { res.status(404).json({ success: false, error: error.message });}
+            else if (error instanceof NotFoundError) { res.status(404).json({ success: false, error: error.message }); }
             else { res.status(500).json({ success: false, error: 'Internal server error.' }); }
         }
     }
@@ -91,7 +116,7 @@ class UserController {
             const { userId } = req.params;
             const user = await UserController.validateAndFetchUserByUserId(userId);
             if (req.body.password) {
-                if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,}$/.test(req.body.password)) { throw new ValidationError('Password must contain at least 8 characters, including uppercase, lowercase, numbers, and special characters.'); }                
+                if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,}$/.test(req.body.password)) { throw new ValidationError('Password must contain at least 8 characters, including uppercase, lowercase, numbers, and special characters.'); }
                 req.body.password = await UserRepository.hashPassword(req.body.password);
             }
             const updatedUser = await UserRepository.updateUserByUserId(userId, req.body);
@@ -100,7 +125,7 @@ class UserController {
             if (error instanceof ValidationError) { res.status(400).json({ success: false, error: error.message }); }
             else if (error instanceof NotFoundError) { res.status(404).json({ success: false, error: error.message }); }
             else { res.status(500).json({ success: false, error: 'Internal server error.' }); }
-        }        
+        }
     }
 
     static async deleteUserByUserId(req, res) {
@@ -113,7 +138,7 @@ class UserController {
             if (error instanceof ValidationError) { res.status(400).json({ success: false, error: error.message }); }
             else if (error instanceof NotFoundError) { res.status(404).json({ success: false, error: error.message }); }
             else { res.status(500).json({ success: false, error: 'Internal server error.' }); }
-        }        
+        }
     }
 
     static async getUser(user) {
@@ -127,7 +152,7 @@ class UserController {
     static async validateAndFetchUserByUserId(userId) {
         if (!/^[0-9]{6}$/.test(userId)) { throw new ValidationError('Invalid userId format.'); }
         const user = await UserRepository.getUserByUserId(userId);
-        if (!user) { throw new NotFoundError('User not found.');}
+        if (!user) { throw new NotFoundError('User not found.'); }
         return user;
     }
 
@@ -135,7 +160,7 @@ class UserController {
         const requiredFields = { userName, email, mobile, password };
         const missingFields = Object.keys(requiredFields).filter(key => !requiredFields[key]);
         if (missingFields.length > 0) { return { error: `Missing required fields: ${missingFields.join(', ')}` }; }
-        
+
         const validators = {
             userName: { test: val => /^[a-zA-Z ]{4,}$/.test(val), message: 'Invalid userName. Must be at least 4 characters and only letters.' },
             email: { test: val => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val), message: 'Invalid email format.' },
