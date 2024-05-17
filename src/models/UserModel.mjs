@@ -23,7 +23,13 @@ const userSchema = new Schema({
     referenceCode: { type: String, default: 'admin' },
     weightage: { type: Number, default: 0 },
     status: { type: String, default: 'active' },
-    otp: { type: Number, default: null }
+    otp: { type: Number, default: null },
+    bankDetails: [
+        {
+            type: Schema.Types.ObjectId,
+            ref: 'UserBankAccount'
+        }
+    ],
 }, {
     timestamps: true
 });

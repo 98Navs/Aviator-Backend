@@ -43,6 +43,19 @@ class BankController {
         }
     }
 
+    static async getActiveBank(req,res){
+        try {
+            const data = await BankFileRepository.getActiveBankAll();
+            if (data) {
+                return res.json(data);
+            } else {
+                return res.status(404).json({ success: false, message: "Data not found" });
+            } 
+        } catch (error) {
+            res.status(500).json({ error: error.message });
+        }
+    }
+
     static async getBankById(req, res) {
         try {
             const BankId = req.params.id;
@@ -98,6 +111,19 @@ class BankController {
         }
     }
 
+    static async changeStatusById(req,res){
+        try {
+            const BankId = req.params.id;
+            const data = await BankFileRepository.changeStatusBankById(BankId);
+            if (data) {
+                return res.json({ success: true, message: "Data is deleted Successfully", data });
+            } else {
+                return res.status(404).json({ success: false, message: "Data not found" });
+            }
+        } catch (error) {
+            res.status(500).json({ error: error.message }); 
+        }
+    }
 }
 
 export default BankController;

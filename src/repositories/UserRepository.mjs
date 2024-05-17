@@ -1,6 +1,7 @@
 // src/repositories/UserRepository.mjs
 import bcrypt from 'bcrypt';
 import User from '../models/UserModel.mjs';
+import { populate } from 'dotenv';
 
 class UserRepository {
     static async createUser(userData) {

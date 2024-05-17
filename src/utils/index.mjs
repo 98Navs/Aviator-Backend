@@ -30,13 +30,13 @@ export const ValidateSignature = async (req) => {
 // Validation for Admin Token
 export const ValidateAdminSignature = async (req) => {
     try {
-        const isValid = await this.ValidateSignature(req);
+        const isValid = await ValidateSignature(req);
 
         if (!isValid) {
             console.log('Token not found in headers or cookies');
             return false;
         }
-
+ 
         if (isValid && req.user.role === 'admin' || req.user.role === 'super-admin') {
             return true;
         } else {

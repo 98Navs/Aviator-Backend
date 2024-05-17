@@ -1,7 +1,6 @@
 //src/models/bankfile.js
 import { Schema, model } from 'mongoose';
 
-
 const bankAccountSchema = new Schema({
     bankName: {
         type: String,
@@ -29,12 +28,12 @@ const bankAccountSchema = new Schema({
     imageBarcode: {
         type: String,
         required: true
+    },
+    status:{
+        type:String,
+        default:'inActive'
     }
 })
-
-//module.exports = mongoose.model('BankAccount', bankAccountSchema);
-
-
 const BankAccount = model('BankAccount', bankAccountSchema);
 
 export default BankAccount;
