@@ -102,8 +102,8 @@ class UserController {
         try {
             const { userId } = req.params;
             const user = await UserController.validateAndFetchUserByUserId(userId);
-            const { wallet, depositAmount, bonusAmount, commissionAmount } = user;
-            res.status(200).json({ success: true, message: `Wallet data fetched successfully for userId ${userId}`, wallet, depositAmount, bonusAmount, commissionAmount });
+            const { wallet, depositAmount, bonusAmount, commissionAmount, winningsAmount } = user;
+            res.status(200).json({ success: true, message: `Wallet data fetched successfully for userId ${userId}`, wallet, depositAmount, bonusAmount, commissionAmount, winningsAmount });
         } catch (error) {
             if (error instanceof ValidationError) { res.status(400).json({ success: false, error: error.message }); }
             else if (error instanceof NotFoundError) { res.status(404).json({ success: false, error: error.message }); }
