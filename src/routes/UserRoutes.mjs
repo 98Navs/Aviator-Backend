@@ -22,16 +22,16 @@ router.post('/changePassword', UserController.changePassword);
 // GET /users - Get all users
 router.get('/users', UserController.getAllUsers);
 
-// GET /users/:id - Get a user by ID
+// GET /users/:userId - Get a user by userId
 router.get('/users/:userId', UserController.getUserByUserId);
 
+// GET /wallet/:userId - Get a user wallet details by userId
 router.get('/wallet/:userId', UserController.getWalletByUserId);
 
-
-// PUT /users/:id - Update a user by ID
+// PUT /users/:userId - Update a user by userId
 router.put('/users/:userId', UserController.updateUserByUserId);
 
-// DELETE /users/:id - Delete a user by ID
+// DELETE /users/:userId - Delete a user by userId
 router.delete('/users/:userId', UserController.deleteUserByUserId);
 
 export default router;

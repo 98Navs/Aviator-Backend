@@ -6,13 +6,10 @@ import nodemailer from 'nodemailer';
 export async function GenerateSignature(payload, res) {
     try {
         const token = jwt.sign(payload, process.env.APP_SECRET, { expiresIn: '30d' });
-
-        // Set the token as a cookie
         res.cookie('jwt', token, {
             httpOnly: true,
-            maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+            maxAge: 30 * 24 * 60 * 60 * 1000,
         });
-
         return token;
     } catch (error) {
         console.error('Error generating token:', error);

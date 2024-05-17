@@ -19,18 +19,6 @@ class UserRepository {
         }
     }
 
-    static async getUserById(userId) {
-        try {
-            const user = await User.findById(userId);
-            if (!user) {
-                throw new Error('User not found');
-            }
-            return user;
-        } catch (error) {
-            throw new Error('Error getting user by ID: ' + error.message);
-        }
-    }
-
     static async updateUserByUserId(userId, userData) {
         try {
             const user = await User.findOneAndUpdate({ userId }, userData, { new: true });
@@ -40,7 +28,6 @@ class UserRepository {
             throw new Error('Error updating user by userId: ' + error.message);
         }
     }
-
 
     static async deleteUserByUserId(userId) {
         try {
@@ -68,14 +55,6 @@ class UserRepository {
         }
     }
 
-    static async getUserByUserName(userName) {
-        try {
-            return await User.findOne({ userName });
-        } catch (error) {
-            throw new Error('Error getting user by username: ' + error.message);
-        }
-    }
-
     static async getUserByPromoCode(promoCode) {
         try {
             return await User.findOne({ promoCode });
@@ -97,22 +76,6 @@ class UserRepository {
             return await User.findOne({ userId });
         } catch (error) {
             throw new Error('Error getting user by userId: ' + error.message);
-        }
-    }
-
-    static async updateUserPassword(userId, newPassword) {
-        try {
-            const user = await User.findOne({ userId });
-            if (!user) {
-                throw new Error('User not found.');
-            }
-
-            user.password = newPassword;
-            await user.save();
-
-            return { message: 'Password updated successfully.' };
-        } catch (error) {
-            throw new Error(error.message);
         }
     }
 

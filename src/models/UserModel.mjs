@@ -10,6 +10,7 @@ const userSchema = new Schema({
     role: { type: String, default: 'user' },
     image: { type: Buffer, default: Buffer.alloc(0) },
     depositAmount: { type: Number, default: 0 },
+    winningsAmount: { type: Number, default: 0},
     bonusAmount: { type: Number, default: 0 },
     commissionAmount: { type: Number, default: 0 },
     lifetimeDepositAmount: { type: Number, default: 0 },
@@ -29,7 +30,7 @@ const userSchema = new Schema({
 
 // Define virtual wallet property
 userSchema.virtual('wallet').get(function () {
-    return this.depositAmount + this.bonusAmount + this.commissionAmount;
+    return this.depositAmount + this.winningsAmount + this.bonusAmount + this.commissionAmount;
 });
 
 // Define toJSON method to include virtuals
