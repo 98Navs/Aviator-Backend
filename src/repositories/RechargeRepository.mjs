@@ -1,6 +1,6 @@
 //src/repositories/UserRepository.mjs
 import Transaction from '../models/RechargeModel.mjs';
-import { generatePaginationUrls } from '../utils/index.mjs'
+import { generatePaginationUrls } from '../project_setup/Utils.mjs'
 import User from '../models/UserModel.mjs';
 import UserBankAccount from '../models/UserBankFileModel.mjs'
 class RechargeRepository {

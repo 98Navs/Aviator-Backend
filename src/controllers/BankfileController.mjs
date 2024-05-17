@@ -1,6 +1,6 @@
 //scr/controllers/UserController.mjs
 import BankFileRepository from "../repositories/BankFileRepository.mjs";
-import { uploadOptions } from "../utils/index.mjs";
+import { uploadOptions } from "../project_setup/Utils.mjs";
 
 class BankController {
     static async createBank(req, res) {

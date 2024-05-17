@@ -1,6 +1,6 @@
 //src/repositories/UserRepository.mjs
 import BankAccount from '../models/BankFileModel.mjs';
-import {generatePaginationUrls} from '../utils/index.mjs'
+import {generatePaginationUrls} from '../project_setup/Utils.mjs'
 
 class BankRepository {
     static async createBank(req, res, { bankName, accountNumber, accountHolderName, ifscCode, upiId, imageBarcode }) {
