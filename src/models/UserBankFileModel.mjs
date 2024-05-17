@@ -1,7 +1,8 @@
 //src/models/bankfile.js
 import { Schema, model } from 'mongoose';
 
-const bankAccountSchema = new Schema({
+
+const userBankAccountSchema = new Schema({
     bankName: {
         type: String,
         required: true
@@ -18,22 +19,12 @@ const bankAccountSchema = new Schema({
         type: String,
         required: true
     },
-    mobile: {
-        type: String
-    },
     upiId: {
         type: String,
         required: true
-    },
-    imageBarcode: {
-        type: String,
-        required: true
-    },
-    status:{
-        type:String,
-        default:'inActive'
     }
-})
-const BankAccount = model('BankAccount', bankAccountSchema);
 
-export default BankAccount;
+})
+const UserBankAccount = model('UserBankAccount', userBankAccountSchema);
+
+export default UserBankAccount;

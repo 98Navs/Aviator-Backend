@@ -61,6 +61,25 @@ class BankRepository {
         }
     }
 
+    static async getActiveBankAll(){
+        try {
+           const query = {status:"Active"}
+
+            const data = await BankAccount.find(query)
+
+            if (data.length > 0) {
+                return {
+                    success: true, message: "Active Bank Details Retrieved Successfully!",
+                    data
+                };
+            } else {
+                return { success: false, message: "No Bank Account Active  Details Found." };
+            } 
+        } catch (error) {
+            throw new Error('Error getting all Bank: ' + error.message);
+        }
+    }
+
     static async getBankById(BankId) {
         try {
             const Bank = await BankAccount.findById(BankId)
@@ -110,6 +129,26 @@ class BankRepository {
             return Bank;
         } catch (error) {
             throw new Error('Error deleting Bank by ID: ' + error.message);
+        }
+    }
+
+    static async changeStatusBankById(bankId){
+        try {
+            const bankAccount = await BankAccount.findById(bankId) 
+
+            if (!bankAccount) {
+                throw new Error('Bank account not found');
+            }
+
+            // Toggle the status
+            bankAccount.status = bankAccount.status === 'Active' ? 'inActive' : 'Active';
+
+            // Save the updated bank account
+            const updatedBankAccount = await bankAccount.save();
+
+            return updatedBankAccount;
+        } catch (error) {
+            throw new Error('Error deleting Bank by ID: ' + error.message); 
         }
     }
 }

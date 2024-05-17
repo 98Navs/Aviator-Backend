@@ -1,6 +1,7 @@
-const { ValidateAdminSignature } = require("../utils/index.mjs");
 
-module.exports = async (req, res, next) => {
+import { ValidateAdminSignature } from "../utils/index.mjs";
+
+export const authAdminMiddleware = async (req, res, next)=> {
     try {
         const isAuthorized = await ValidateAdminSignature(req);
         if (isAuthorized) {
