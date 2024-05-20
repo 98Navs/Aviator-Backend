@@ -1,5 +1,5 @@
 import express from 'express';
-import BankController from '../controllers/BankfileController.mjs';
+import BankController from '../controllers/BankFileController.mjs';
 
 const router = express.Router();
 

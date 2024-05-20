@@ -1,3 +1,4 @@
+//src/controllers/UserController.mjs
 import bcrypt from 'bcrypt';
 import UserRepository from "../repositories/UserRepository.mjs";
 import { GenerateSignature, sendEmail } from "../project_setup/Utils.mjs";
@@ -138,6 +139,39 @@ class UserController {
             if (error instanceof ValidationError) { res.status(400).json({ success: false, error: error.message }); }
             else if (error instanceof NotFoundError) { res.status(404).json({ success: false, error: error.message }); }
             else { res.status(500).json({ success: false, error: 'Internal server error.' }); }
+        }
+    }
+
+    static async deductAmount(req, res) {
+        try {
+            const { userId, depositAmount = 0, winningsAmount = 0, bonusAmount = 0, commissionAmount = 0 } = req.body;
+            const user = await UserController.validateAndFetchUserByUserId(userId);
+            if (user.status == 'active') { throw new ValidationError('User satatus in active, amount can not be deducted if the user status is active') }
+            const amounts = [
+                { name: 'depositAmount', value: depositAmount, userValue: user.depositAmount },
+                { name: 'winningsAmount', value: winningsAmount, userValue: user.winningsAmount },
+                { name: 'bonusAmount', value: bonusAmount, userValue: user.bonusAmount },
+                { name: 'commissionAmount', value: commissionAmount, userValue: user.commissionAmount }
+            ];
+            
+            const insufficientFunds = amounts.filter(fund => fund.value > 0 && fund.userValue < fund.value);
+            if (insufficientFunds.length > 0) {
+                const errorMessage = insufficientFunds.map(fund => `Insufficient ${fund.name}. Requested: ${fund.value}, Available: ${fund.userValue}`).join('; ');
+                const availableFunds = amounts.reduce((acc, fund) => ({ ...acc, [fund.name]: fund.userValue }), {});
+                return res.status(400).json({ success: false, error: errorMessage, userId, availableFunds });
+            }
+
+            amounts.forEach(fund => { user[fund.name] -= fund.value; });
+            await user.save();
+            const admin = await UserRepository.getUserByUserId(709841);
+            if (!admin) { return res.status(404).json({ success: false, error: 'Admin not found.' }); }
+            amounts.forEach(fund => { admin[fund.name] += fund.value; });
+            await admin.save();
+
+            const availableFunds = amounts.reduce((acc, fund) => ({ ...acc, [fund.name]: user[fund.name] }), {});
+            res.status(200).json({ success: true, message: `Deducted depositAmount: ${depositAmount}, winningsAmount: ${winningsAmount}, bonusAmount: ${bonusAmount}, commissionAmount: ${commissionAmount} from userId ${userId} and transferred to admin.`, availableFunds });
+        } catch (error) {
+            res.status(500).json({ success: false, error: error.message });
         }
     }
 

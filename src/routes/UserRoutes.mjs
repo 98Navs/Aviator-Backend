@@ -1,6 +1,7 @@
 //src/routes/UserRoutes.mjs
 import express from 'express';
 import UserController from '../controllers/UserController.mjs';
+import Middleware from '../project_setup/Middleware.mjs'
 
 const router = express.Router();
 
@@ -33,5 +34,9 @@ router.put('/users/:userId', UserController.updateUserByUserId);
 
 // DELETE /users/:userId - Delete a user by userId
 router.delete('/users/:userId', UserController.deleteUserByUserId);
+
+// POST /deductMoney -  Deducting amount from userWallet
+router.post('/deductAmount', Middleware.admin, UserController.deductAmount);
+
 
 export default router;
