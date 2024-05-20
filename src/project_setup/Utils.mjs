@@ -46,6 +46,14 @@ export const generatePaginationUrls = (req, page, totalPages, limit) => {
     };
 };
 
+export const paginate = async (model, query, page, limit, req) => {
+    const skip = (page - 1) * limit;
+    const [data, totalDocuments] = await Promise.all([ model.find(query).skip(skip).limit(limit).exec(), model.countDocuments(query) ]);
+    const pages = Math.ceil(totalDocuments / limit);
+    const nextPageUrl = page < pages ? `${req.baseUrl}${req.path}?pageNumber=${page + 1}&perpage=${limit}` : null;
+    return { data, total: totalDocuments, pageNumber: page, nextPageUrl, page, pages, perpage: limit };
+};
+
 export const GenerateSignature = async (payload, res) => {
     try {
         const token = jwt.sign(payload, process.env.APP_SECRET, { expiresIn: '30d' });

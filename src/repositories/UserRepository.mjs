@@ -1,6 +1,6 @@
 // src/repositories/UserRepository.mjs
-import bcrypt from 'bcrypt';
 import User from '../models/UserModel.mjs';
+import { paginate } from '../project_setup/Utils.mjs';
 
 class UserRepository {
     static async createUser(userData) {
@@ -11,12 +11,8 @@ class UserRepository {
         }
     }
 
-    static async getAllUsers() {
-        try {
-            return await User.find();
-        } catch (error) {
-            throw new Error('Error getting all users: ' + error.message);
-        }
+    static async getAllUsers(options, req) {
+        return paginate(User, {}, options.page, options.limit, req);
     }
 
     static async updateUserByUserId(userId, userData) {
@@ -79,9 +75,19 @@ class UserRepository {
         }
     }
 
-    static async hashPassword(password) {
-        const saltRounds = 10;
-        return await bcrypt.hash(password, saltRounds);
+    static async filterUsers(filterParams, options, req) {
+        const query = {};
+
+        if (filterParams.userId !== undefined) query.userId = filterParams.userId;
+        if (filterParams.mobile !== undefined) query.mobile = filterParams.mobile;
+        if (filterParams.email !== undefined) query.email = filterParams.email;
+        if (filterParams.startDate || filterParams.endDate) {
+            query.createdAt = {};
+            if (filterParams.startDate) query.createdAt.$gte = new Date(filterParams.startDate);
+            if (filterParams.endDate) query.createdAt.$lte = new Date(filterParams.endDate);
+        }
+
+        return paginate(User, query, options.page, options.limit, req);
     }
     
 }
