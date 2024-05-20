@@ -1,4 +1,4 @@
-//scr/controllers/UserController.mjs
+//scr/controllers/BankFileController.mjs
 import BankFileRepository from "../repositories/BankFileRepository.mjs";
 import { uploadOptions } from "../project_setup/Utils.mjs";
 

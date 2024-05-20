@@ -1,4 +1,4 @@
-//src/project_setup/Utils.js
+//src/project_setup/Utils.mjs
 import jwt from 'jsonwebtoken';
 import nodemailer from 'nodemailer';
 import multer from 'multer';

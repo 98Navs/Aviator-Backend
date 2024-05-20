@@ -1,4 +1,4 @@
-//src/project_setup/Middleware.js
+//src/project_setup/Middleware.mjs
 import { ValidateAdminSignature, ValidateAffiliateSignature, ValidateUserSignature } from "../project_setup/Utils.mjs";
 
 class Middleware {

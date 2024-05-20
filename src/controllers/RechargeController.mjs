@@ -1,4 +1,4 @@
-//scr/controllers/UserController.mjs
+//scr/controllers/RechargeController.mjs
 import RechargeRepository from "../repositories/RechargeRepository.mjs";
 import { Parser } from 'json2csv';
 import { format } from 'date-fns';

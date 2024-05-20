@@ -1,4 +1,4 @@
-//src/repositories/UserRepository.mjs
+//src/repositories/BankFileRepository.mjs
 import BankAccount from '../models/BankFileModel.mjs';
 import {generatePaginationUrls} from '../project_setup/Utils.mjs'
 

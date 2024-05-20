@@ -1,4 +1,4 @@
-// src/socket.js
+// src/game/Aviator.mjs
 import http from 'http';
 import { Server } from 'socket.io';
 

@@ -1,5 +1,6 @@
+//src/routes/BankFileRoutes.mjs
 import express from 'express';
-import BankController from '../controllers/BankController.mjs';
+import BankController from '../controllers/BankFileController.mjs';
 
 const router = express.Router();
 

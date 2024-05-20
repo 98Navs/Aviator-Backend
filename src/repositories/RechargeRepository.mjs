@@ -1,4 +1,4 @@
-//src/repositories/UserRepository.mjs
+//src/repositories/RechargeRepository.mjs
 import Transaction from '../models/RechargeModel.mjs';
 import { generatePaginationUrls } from '../project_setup/Utils.mjs'
 import User from '../models/UserModel.mjs';

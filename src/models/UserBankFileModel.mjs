@@ -1,4 +1,4 @@
-//src/models/bankfile.js
+//src/models/UserBankFileModel.mjs
 import { Schema, model } from 'mongoose';
 
 
