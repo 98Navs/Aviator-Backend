@@ -90,6 +90,10 @@ class UserRepository {
         return paginate(User, query, options.page, options.limit, req);
     }
     
+    static async hashPassword(password) {
+        const saltRounds = 10;
+        return await bcrypt.hash(password, saltRounds);
+    }
 }
 
 export default UserRepository;
