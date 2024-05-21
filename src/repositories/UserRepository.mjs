@@ -1,4 +1,5 @@
 // src/repositories/UserRepository.mjs
+import bcrypt from 'bcrypt';
 import User from '../models/UserModel.mjs';
 import { paginate } from '../project_setup/Utils.mjs';
 
