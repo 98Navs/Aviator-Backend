@@ -80,12 +80,12 @@ class UserController {
 
     static async getAllUsers(req, res) {
         try {
-            const { pageNumber = 1, perpage = 2 } = req.query;
+            const { pageNumber = 1, perpage = 10 } = req.query;
             const options = { page: Number(pageNumber), limit: Number(perpage) };
             const users = await UserRepository.getAllUsers(options, req);
             res.status(200).json({ status: 200, success: true, message: 'Users fetched successfully', ...users });
         } catch (error) {
-            res.status(500).json({ status: 500, success: false, error: error.message });
+            res.status(500).json({ status: 500, success: false, message: error.message });
         }
     }
 
@@ -95,9 +95,7 @@ class UserController {
             const user = await UserController.validateAndFetchUserByUserId(userId);
             res.status(200).json({ status: 200, success: true, message: `Data fetched successfully for userId ${userId}`, user });
         } catch (error) {
-            if (error instanceof ValidationError) { res.status(400).json({ status: 400, success: false, message: error.message }); }
-            else if (error instanceof NotFoundError) { res.status(404).json({ status: 404, success: false, message: error.message }); }
-            else { res.status(500).json({ status: 500, success: false, message: 'Internal server error.' }); }
+            UserController.catchError(error, res);
         }
     }
 
@@ -108,16 +106,14 @@ class UserController {
             const { wallet, depositAmount, bonusAmount, commissionAmount, winningsAmount } = user;
             res.status(200).json({ status: 200, success: true, message: `Wallet data fetched successfully for userId ${userId}`, wallet, depositAmount, bonusAmount, commissionAmount, winningsAmount });
         } catch (error) {
-            if (error instanceof ValidationError) { res.status(400).json({ status: 400, success: false, message: error.message }); }
-            else if (error instanceof NotFoundError) { res.status(404).json({ status: 404, success: false, message: error.message }); }
-            else { res.status(500).json({ status: 500, success: false, message: 'Internal server error.' }); }
+            UserController.catchError(error, res);
         }
     }
 
     static async updateUserByUserId(req, res) {
         try {
             const { userId } = req.params;
-            const user = await UserController.validateAndFetchUserByUserId(userId);
+            await UserController.validateAndFetchUserByUserId(userId);
             if (req.body.password) {
                 if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,}$/.test(req.body.password)) { throw new ValidationError('Password must contain at least 8 characters, including uppercase, lowercase, numbers, and special characters.'); }
                 req.body.password = await UserRepository.hashPassword(req.body.password);
@@ -125,22 +121,18 @@ class UserController {
             const updatedUser = await UserRepository.updateUserByUserId(userId, req.body);
             res.status(200).json({ status: 200, success: true, message: `Data updated successfully for userId ${userId}`, updatedUser });
         } catch (error) {
-            if (error instanceof ValidationError) { res.status(400).json({ status: 400, success: false, message: error.message }); }
-            else if (error instanceof NotFoundError) { res.status(404).json({ status: 404, success: false, message: error.message }); }
-            else { res.status(500).json({ status: 500, success: false, message: 'Internal server error.' }); }
+            UserController.catchError(error, res);
         }
     }
 
     static async deleteUserByUserId(req, res) {
         try {
             const { userId } = req.params;
-            const user = await UserController.validateAndFetchUserByUserId(userId);
+            await UserController.validateAndFetchUserByUserId(userId);
             const deleteUser = await UserRepository.deleteUserByUserId(userId);
             res.status(200).json({ status: 200, success: true, message: `Data deleted successfully for userId ${userId}`, deleteUser });
         } catch (error) {
-            if (error instanceof ValidationError) { res.status(400).json({ status: 400, success: false, message: error.message }); }
-            else if (error instanceof NotFoundError) { res.status(404).json({ status: 404, success: false, message: error.message }); }
-            else { res.status(500).json({ status: 500, success: false, message: 'Internal server error.' }); }
+            UserController.catchError(error, res);
         }
     }
 
@@ -173,9 +165,7 @@ class UserController {
             const availableFunds = amounts.reduce((acc, fund) => ({ ...acc, [fund.name]: user[fund.name] }), {});
             res.status(200).json({ status: 200, success: true, message: `Deducted depositAmount: ${depositAmount}, winningsAmount: ${winningsAmount}, bonusAmount: ${bonusAmount}, commissionAmount: ${commissionAmount} from userId ${userId} and transferred to admin.`, availableFunds });
         } catch (error) {
-            if (error instanceof ValidationError) { res.status(400).json({ status: 400, success: false, message: error.message }); }
-            else if (error instanceof NotFoundError) { res.status(404).json({ status: 404, success: false, message: error.message }); }
-            else { res.status(500).json({ status: 500, success: false, message: 'Internal server error.' }); }
+            UserController.catchError(error, res);
         }
     }
 
@@ -199,6 +189,17 @@ class UserController {
             res.status(200).json({ status: 200, success: true, message: 'Users filtered successfully', users });
         } catch (error) {
             res.status(500).json({ status: 500, success: false, message: error.message });
+        }
+    }
+
+    //Static Methods Only For This Class (Not To Be Used In Routes)
+    static async catchError(error, res) {
+        try {
+            if (error instanceof ValidationError) { res.status(400).json({ status: 400, success: false, message: error.message }); }
+            else if (error instanceof NotFoundError) { res.status(404).json({ status: 404, success: false, message: error.message }); }
+            else { res.status(500).json({ status: 500, success: false, message: 'Internal server error.' }); }
+        } catch (error) {
+            res.status(500).json({ status: 500, success: false, message: 'Something unexpected has happened' });
         }
     }
 

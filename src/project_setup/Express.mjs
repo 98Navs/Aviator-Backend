@@ -2,9 +2,7 @@
 import express from "express";
 import cors from "cors";
 import cookieParser from 'cookie-parser';
-import UserRoutes from '../routes/UserRoutes.mjs';
-import BankRoutes from '../routes/BankFileRoutes.mjs';
-import RechargeRoutes from '../routes/RechargeRoutes.mjs'
+import { UserRoutes, FestivalBonusRoutes, DepositBonusRoutes, BankFileRoutes, RechargeRoutes } from "../routes/AllRoutes.mjs";
 
 export default async function setupExpressApp() {
     const app = express();
@@ -20,8 +18,11 @@ export default async function setupExpressApp() {
 
     // Mount user routes
     app.use(UserRoutes);
-    app.use(BankRoutes);
-    app.use(RechargeRoutes)
+    app.use(BankFileRoutes);
+    app.use(RechargeRoutes);
+    app.use(FestivalBonusRoutes);
+    app.use(DepositBonusRoutes);
+
 
     // Start the server
     app.listen(process.env.PORT, () => {

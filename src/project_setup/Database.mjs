@@ -1,4 +1,4 @@
-//src/project_setup/Connection.mjs
+//src/project_setup/Database.mjs
 import 'dotenv/config';
 import mongoose from "mongoose";
 
