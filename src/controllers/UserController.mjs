@@ -171,21 +171,20 @@ class UserController {
 
     static async filterUsers(req, res) {
         try {
-            const { userId, mobile, email, startDate, endDate, pageNumber = 1, perpage = 20 } = req.body;
-            if (userId && !/^\d{6}$/.test(userId)) { return res.status(400).json({ status: 400, success: false, message: 'userId must be a 6-digit number.' }); }
-            if (mobile && !/^\d{10}$/.test(mobile)) { return res.status(400).json({ status: 400, success: false, message: 'mobile must be a 10-digit number.' }); }
-            if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { return res.status(400).json({ status: 400, success: false, message: 'Invalid email format.' }); }
-            if (!userId && !mobile && !email && !startDate && !endDate) { return res.status(400).json({ status: 400, success: false, message: 'Please provide at least one of the following fields: userId, mobile, email, startDate, or endDate.' }); }
+            const { search, startDate, endDate, pageNumber = 1, perpage = 20 } = req.query;
+            if (!search && !startDate && !endDate) {
+                return res.status(400).json({ status: 400, success: false, message: 'Please provide at least one of the following fields: search, startDate, or endDate.' });
+            }
             const filterParams = {
-                ...(userId && { userId: Number(userId) }),
-                ...(mobile && { mobile: Number(mobile) }),
-                ...(email && { email }),
+                search,
                 ...(startDate && { startDate }),
                 ...(endDate && { endDate })
             };
             const options = { page: Number(pageNumber), limit: Number(perpage) };
             const users = await UserRepository.filterUsers(filterParams, options, req);
-            if (!users.data.length) { return res.status(404).json({ status: 404, success: false, message: 'No data found for the provided details.' }); }
+            if (!users.data.length) {
+                return res.status(404).json({ status: 404, success: false, message: 'No data found for the provided details.' });
+            }
             res.status(200).json({ status: 200, success: true, message: 'Users filtered successfully', users });
         } catch (error) {
             res.status(500).json({ status: 500, success: false, message: error.message });

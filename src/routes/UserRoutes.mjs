@@ -39,6 +39,6 @@ router.delete('/users/:userId', UserController.deleteUserByUserId);
 router.post('/deductAmount', Middleware.admin, UserController.deductAmount);
 
 // GET //users/filter - Filter user data on the basis of email, mobile, userId, or 
-router.post('/usersData/filter', UserController.filterUsers);
+router.get('/usersData/filter', UserController.filterUsers);
 
 export default router;

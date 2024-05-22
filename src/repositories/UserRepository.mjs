@@ -24,9 +24,15 @@ class UserRepository {
 
     static async filterUsers(filterParams, options, req) {
         const query = {};
-        if (filterParams.userId !== undefined) query.userId = filterParams.userId;
-        if (filterParams.mobile !== undefined) query.mobile = filterParams.mobile;
-        if (filterParams.email !== undefined) query.email = filterParams.email;
+
+        if (filterParams.search) {
+            const searchRegex = new RegExp(`^${filterParams.search}`, 'i');
+            query.$or = [
+                { $expr: { $regexMatch: { input: { $toString: "$userId" }, regex: searchRegex } } },
+                { $expr: { $regexMatch: { input: { $toString: "$mobile" }, regex: searchRegex } } },
+                { email: searchRegex }
+            ];
+        }
         if (filterParams.startDate || filterParams.endDate) {
             query.createdAt = {};
             if (filterParams.startDate) query.createdAt.$gte = new Date(filterParams.startDate);

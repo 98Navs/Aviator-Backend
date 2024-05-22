@@ -88,8 +88,8 @@ class FestivalBonusController {
 
     const start = new Date(startDate);
     const end = new Date(endDate);
-        if (isNaN(start.getTime()) || isNaN(end.getTime())) { throw new ValidationError('StartDate and EndDate must be valid dates'); }
-        if (end <= start) { throw new ValidationError('EndDate must be after StartDate'); }
+        if (isNaN(start.getTime()) || isNaN(end.getTime())) { throw new ValidationError('StartDate and EndDate must be valid dates in ISO format'); }
+        if (end < start) { throw new ValidationError('EndDate must be after StartDate'); }
         if (typeof deal !== 'number') { throw new ValidationError('Deal must be a number'); }
 
     const validStatuses = ['Active', 'Deactive'];
