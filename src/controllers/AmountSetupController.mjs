@@ -7,7 +7,7 @@ class AmountSetupController {
             req.body.settingName = req.body.settingName.replace(/^\s+|\s+$/g, ''); 
             req.body.value = req.body.value.replace(/^\s+|\s+$/g, ''); 
             const amountSetupData = await AmountSetupController.amountSetupValidation(req.body);
-            const amountSetup = await AmountSetupRepository.createDepositBonus(amountSetupData);
+            const amountSetup = await AmountSetupRepository.createAmountSetup(amountSetupData);
             res.status(201).json({ status: 201, success: true, message: 'Amount Setup created successfully', amountSetup });
         } catch (error) {
             AmountSetupController.catchError(error, res);
