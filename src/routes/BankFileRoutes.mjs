@@ -5,22 +5,22 @@ import BankController from '../controllers/BankFileController.mjs';
 const router = express.Router();
 
 
-router.post('/bankAccount', BankController.createBank);
+router.post('/bankAccount', authAdminMiddleware, BankController.createBank);
 
 
-router.get('/bankAccountAll', BankController.getAllBank);
+router.get('/bankAccountAll', authAdminMiddleware, BankController.getAllBank);
 
 
-router.get('/bankAccountActive',BankController.getActiveBank)
+router.get('/bankAccountActive',authAdminMiddleware,BankController.getActiveBank)
 
-router.get('/bankAccount/:id', BankController.getBankById);
-
-
-router.put('/bankAccount/:id', BankController.updateBankById);
+router.get('/bankAccount/:id', authAdminMiddleware, BankController.getBankById);
 
 
-router.delete('/bankAccount/:id', BankController.deleteBankById);
+router.put('/bankAccount/:id', authAdminMiddleware, BankController.updateBankById);
 
-router.get('/changeStatus/:id', BankController.changeStatusById)
+
+router.delete('/bankAccount/:id', authAdminMiddleware, BankController.deleteBankById);
+
+router.get('/changeStatus/:id', authAdminMiddleware, BankController.changeStatusById)
 
 export default router;

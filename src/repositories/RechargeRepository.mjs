@@ -33,12 +33,17 @@ class RechargeRepository {
         }
     }
 
-    static async getTransactionList(req, page, limit){
+    static async getTransactionList(req, page, limit, status) {
         try {
+            const query = {};
+            if (status) {
+                query.status = status;
+            }
+
             const skip = (page - 1) * limit;
             const totalItems = await Transaction.countDocuments();
             const totalPages = Math.ceil(totalItems / limit);
-            const list = await Transaction.find().populate('userId').populate('adminBankId').skip(skip).limit(limit);
+            const list = await Transaction.find(query).populate('userId').populate('adminBankId').skip(skip).limit(limit);
             if (list.length > 0) {
                 //pagination call function
                 const { prepage, nextpage } = generatePaginationUrls(req, page, totalPages, limit);
@@ -56,17 +61,16 @@ class RechargeRepository {
                 return { success: false, message: "No User Details found." };
             }
         } catch (error) {
-            throw new Error('Error creating user: ' + error.message); 
+            throw new Error('Error creating user: ' + error.message);
         }
     }
 
-    static async rechargeStatus(tranId, adminId, status){
+    static async rechargeStatus(tranId, adminId, status) {
         try {
-            console.log('tranId',tranId)
-            const transaction =  await Transaction.findById(tranId);
+
+            const transaction = await Transaction.findById(tranId);
             const admin = await User.findById(adminId);
-            console.log("transId", transaction)
-            console.log("admin", admin)
+
             if (!transaction || !admin) {
                 return { success: false, message: "Invalid Id" };
             }
@@ -77,15 +81,16 @@ class RechargeRepository {
                     await transaction.save();
 
                     // Transfer the amount to the user's wallet
-                    console.log("userId", transaction.Id);
-                    const user = await User.findById(transaction.Id);
+                    console.log("userId", transaction.userId);
+                    const user = await User.findById(transaction.userId);
 
-                    console.log("user", user);
                     if (user) {
+
                         user.depositAmount += transaction.amount;
                         user.lastrecharge = new Date();
                         await user.save();
                         return { success: true, message: "Transaction status updated Approved successfully" };
+
                     } else {
                         return { success: false, message: "User not found for the transaction" };
                     }
@@ -93,7 +98,7 @@ class RechargeRepository {
                     // If the status is 'cancel', update the transaction status to 'cancel'
                     transaction.status = 'Rejected';
                     await transaction.save();
-                    return { success: true, message: "Transaction status updated Cancel successfully" };
+                    return { success: true, message: "Transaction status updated Rejected successfully" };
                 } else {
                     return { success: false, message: "Invalid status provided" };
                 }
@@ -101,27 +106,27 @@ class RechargeRepository {
                 return { success: false, message: "Transaction is not pending for approval" };
             }
         } catch (error) {
-            throw new Error('Error creating user: ' + error.message); 
+            throw new Error('Error creating user: ' + error.message);
         }
     }
 
-    static async downloadData(){
+    static async downloadData() {
         try {
             const Data = await Transaction.find()
             return Data;
         } catch (error) {
-            throw new Error('Error creating user: ' + error.message);  
+            throw new Error('Error creating user: ' + error.message);
         }
     }
 
-    static async createBankAccount(Id,bankDetails){
+    static async createBankAccount(Id, bankDetails) {
         try {
             const { bankName, accountNumber, accountHolderName, ifscCode, upiId } = bankDetails;
 
             const user = await User.findById(Id)
 
             if (!user) {
-                throw new Error('User not found');
+                return { success: false, message: 'User not found' };
             }
 
             const bank = new UserBankAccount({
@@ -130,29 +135,28 @@ class RechargeRepository {
                 accountHolderName,
                 ifscCode,
                 upiId
-               
+
             });
             const bankData = await bank.save();
-           
-
-            if (bankData) {
-                user.bankDetails.push(bankData._id);
-                await user.save()
-                return bankData;
-            } else {
+            if (!bankData) {
                 return { success: false, message: 'Failed to save bank details.' };
-            } 
+            }
+
+            user.bankDetails.push(bankData._id);
+            await user.save()
+            return { success: true, message: 'Bank details saved successfully', data: bankData };
+
         } catch (error) {
-            throw new Error('Error creating user: ' + error.message);  
+            throw new Error('Error creating user: ' + error.message);
         }
     }
 
-    static async deleteBankAccount(userId,bankId){
+    static async deleteBankAccount(userId, bankId) {
         try {
             const user = await User.findById(userId);
 
             if (!user) {
-                throw new Error('User not found');
+                return { success: false, message: 'User not found' };
             }
 
             // Remove the bank account from the user's bank array
@@ -169,7 +173,7 @@ class RechargeRepository {
                 return { success: false, message: 'Failed to delete bank account.' };
             }
         } catch (error) {
-            throw new Error('Error creating user: ' + error.message);   
+            throw new Error('Error creating user: ' + error.message);
         }
     }
 }
