@@ -3,6 +3,8 @@ import express from "express";
 import cors from "cors";
 import cookieParser from 'cookie-parser';
 import { UserRoutes, FestivalBonusRoutes, DepositBonusRoutes, BankFileRoutes, RechargeRoutes, AmountSetupRoutes } from "../routes/AllRoutes.mjs";
+import WithdrawalRoutes from '../routes/WithdrawalRoutes.mjs'
+import SetAmountRoutes from '../routes/SetAmountRoutes.mjs'
 
 export default async function setupExpressApp() {
     const app = express();
@@ -25,6 +27,8 @@ export default async function setupExpressApp() {
     app.use(AmountSetupRoutes);
 
 
+    app.use(WithdrawalRoutes)
+    app.use(SetAmountRoutes)
 
     // Start the server
     app.listen(process.env.PORT, () => {

@@ -2,15 +2,19 @@
 import RechargeRepository from "../repositories/RechargeRepository.mjs";
 import { Parser } from 'json2csv';
 import { format } from 'date-fns';
-
+import mongoose from 'mongoose';
 
 class RechargeController {
     static async createRecharge(req, res) {
         try {
-            const adminBnakId = req.params.id
+            const adminBankId = req.params.id
             const userId = req.user.objectId
 
-            if (!adminBnakId) {
+            if (!mongoose.Types.ObjectId.isValid(adminBankId)) {
+                return res.status(400).json({ success: false, message: "Invalid ID format" });
+            }
+
+            if (!adminBankId) {
                 return res.status(404).json({ success: false, message: "Admin bankID  Not Found!" });
             }
 
@@ -27,7 +31,7 @@ class RechargeController {
             const userInputs = { amount, transactionId, bankName, accountNumber, accountHolderName, ifscCode, upiId }
 
 
-            const data = await RechargeRepository.createRechargeMangement(userId, userInputs, adminBnakId)
+            const data = await RechargeRepository.createRechargeMangement(userId, userInputs, adminBankId)
 
             if (data) {
                 return res.json(data);
@@ -43,9 +47,10 @@ class RechargeController {
 
     static async getAllRecharge(req, res) {
         try {
+            const status = req.query.status; 
             const page = parseInt(req.query.page) || 1;
             const limit = parseInt(req.query.limit) || 10;
-            const data = await RechargeRepository.getTransactionList(req, page, limit);
+            const data = await RechargeRepository.getTransactionList(req, page, limit,status);
             if (data) {
                 return res.json(data);
             } else {
@@ -62,6 +67,14 @@ class RechargeController {
             const { status } = req.body;
             const adminId = req.user.objectId
             const tranId = req.params.id
+         
+            if (typeof status !== 'string' || !['1', '0'].includes(status)) {
+                return res.status(400).json({ success: false, message: "Invalid status provided. Status must be '1' or '0'." });
+            }
+
+            if (!mongoose.Types.ObjectId.isValid(tranId)) {
+                return res.status(400).json({ success: false, message: "Invalid ID format" });
+            }
 
             if (!tranId) {
                 return res.status(404).json({ success: false, message: "Transaction Id Not Found!" });
@@ -142,6 +155,10 @@ class RechargeController {
             const userId = req.user.objectId;
             const bankId = req.params.id;
 
+            if (!mongoose.Types.ObjectId.isValid(bankId)) {
+                return res.status(400).json({ success: false, message: "Invalid ID format" });
+            }
+            
             if (!bankId) {
                 return res.status(400).json({ success: false, message: "Please provide a valid bankId." });
             }

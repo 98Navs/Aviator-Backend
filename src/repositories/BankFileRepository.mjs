@@ -93,8 +93,9 @@ class BankRepository {
         }
     }
 
-    static async UpdateBankFile(req, res, { bankName, accountNumber, accountHolderName, ifscCode, upiId, imageBarcode }, id) {
+    static async UpdateBankFile(req,res,{ bankName, accountNumber, accountHolderName, ifscCode, upiId, imageBarcode },id) {
         try {
+           
             const file = req.file;
             if (!file) return res.status(400).json('No image in the request')
 
@@ -124,9 +125,9 @@ class BankRepository {
         try {
             const Bank = await BankAccount.findByIdAndDelete(bankId);
             if (!Bank) {
-                throw new Error('Data not found');
+                return { success: false, message: 'Data not found',Id:bankId }
             }
-            return Bank;
+            return { success: true, message: 'Bank account deleted successfully', data: Bank };
         } catch (error) {
             throw new Error('Error deleting Bank by ID: ' + error.message);
         }
