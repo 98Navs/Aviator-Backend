@@ -5,7 +5,7 @@ class DepositBonusController {
     static async createDepositBonus(req, res) {
         try {
             const depositBonusData = await DepositBonusController.depositBonusValidation(req.body);
-            const depositBonus = await DepositBonusRepository.createFestivalBonus(depositBonusData);
+            const depositBonus = await DepositBonusRepository.createDepositBonus(depositBonusData);
             res.status(201).json({ status: 201, success: true, message: 'Deposit bonus created successfully', depositBonus });
         } catch (error) {
             DepositBonusController.catchError(error, res);
@@ -83,7 +83,7 @@ class DepositBonusController {
         const start = new Date(startDate);
         const end = new Date(endDate);
         if (isNaN(start.getTime()) || isNaN(end.getTime())) { throw new ValidationError('StartDate and EndDate must be valid dates'); }
-        if (end <= start) { throw new ValidationError('EndDate must be after StartDate'); }
+        if (end < start) { throw new ValidationError('EndDate must be after StartDate'); }
         if (typeof amount !== 'number') { throw new ValidationError('Amount must be a number'); }
         if (typeof deal !== 'number') { throw new ValidationError('Deal must be a number'); }
 
@@ -94,7 +94,6 @@ class DepositBonusController {
             const existingBonus = await DepositBonusRepository.checkDuplicateAmount(amount);
             if (existingBonus) { throw new ValidationError('A deposit bonus with this amount already exists.'); }
         }
-
         return requiredFields;
     }
 
