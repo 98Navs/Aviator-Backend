@@ -4,6 +4,7 @@ import FestivalBonusRepository from '../repositories/FestivalBonusRepository.mjs
 class FestivalBonusController {
     static async createFestivalBonus(req, res) {
         try {
+            req.body.name = req.body.name.replace(/^\s+|\s+$/g, ''); 
             const festivalBonusData = await FestivalBonusController.festivalBonusValidation(req.body);
             const festivalBonus = await FestivalBonusRepository.createFestivalBonus(festivalBonusData);
             res.status(201).json({ status: 201, success: true, message: 'Festival bonus created successfully', festivalBonus });
@@ -14,10 +15,17 @@ class FestivalBonusController {
 
     static async getAllFestivalBonuses(req, res) {
         try {
-            const { pageNumber = 1, perpage = 10 } = req.query;
+            const { search, startDate, endDate, pageNumber = 1, perpage = 10 } = req.query;
             const options = { page: Number(pageNumber), limit: Number(perpage) };
-            const festivalBonuses = await FestivalBonusRepository.getAllFestivalBonuses(options, req);
-            res.status(200).json({ status: 200, success: true, message: 'All festival bonuses fetched successfully', ...festivalBonuses });
+            if (search || startDate || endDate) {
+                const filterParams = { search, ...(startDate && { startDate }), ...(endDate && { endDate }) };
+                const festivalBonuses = await FestivalBonusRepository.filterFestivalBonuses(filterParams, options, req);
+                if (!festivalBonuses.data.length) { return res.status(404).json({ status: 404, success: false, message: 'No data found for the provided details.' }); }
+                return res.status(200).json({ status: 200, success: true, message: 'Festival bonuses filtered successfully', ...festivalBonuses });
+            } else {
+                const festivalBonuses = await FestivalBonusRepository.getAllFestivalBonuses(options, req);
+                return res.status(200).json({ status: 200, success: true, message: 'All festival bonuses fetched successfully', ...festivalBonuses });
+            }
         } catch (error) {
             FestivalBonusController.catchError(error, res);
         }
@@ -36,6 +44,7 @@ class FestivalBonusController {
     static async updateFestivalBonusByOfferId(req, res) {
         try {
             const { offerId } = req.params;
+            req.body.name = req.body.name.replace(/^\s+|\s+$/g, ''); 
             await FestivalBonusController.validateAndFetchFestivalBonusByOfferId(offerId)
             const festivalBonusData = await FestivalBonusController.festivalBonusValidation(req.body, true);
             const festivalBonus = await FestivalBonusRepository.updateFestivalBonusByOfferId(offerId, festivalBonusData);
@@ -103,7 +112,6 @@ class FestivalBonusController {
         }
     return requiredFields;
     }
-    
 }
 
 class ValidationError extends Error { constructor(message) { super(message); this.name = 'ValidationError'; } }

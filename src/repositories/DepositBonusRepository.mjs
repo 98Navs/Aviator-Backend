@@ -14,6 +14,26 @@ class DepositBonusRepository {
     static async deleteDepositBonusByOfferId(offerId) { return await DepositBonus.findOneAndDelete({ offerId }); }
 
     static async checkDuplicateAmount(amount) { return await DepositBonus.findOne({ amount }); }
+
+    static async filterDepositBonuses(filterParams, options, req) {
+        const query = {};
+
+        if (filterParams.search) {
+            const searchRegex = new RegExp(`^${filterParams.search}`, 'i');
+            query.$or = [
+                { $expr: { $regexMatch: { input: { $toString: "$offerId" }, regex: searchRegex } } },
+                { $expr: { $regexMatch: { input: { $toString: "$amount" }, regex: searchRegex } } },
+                { $expr: { $regexMatch: { input: { $toString: "$deal" }, regex: searchRegex } } },
+                { status: searchRegex }
+            ];
+        }
+        if (filterParams.startDate || filterParams.endDate) {
+            query.createdAt = {};
+            if (filterParams.startDate) query.startDate.$gte = new Date(filterParams.startDate);
+            if (filterParams.endDate) query.endDate.$lte = new Date(filterParams.endDate);
+        }
+        return await paginate(DepositBonus, query, options.page, options.limit, req);
+    }
 }
 
 export default DepositBonusRepository;

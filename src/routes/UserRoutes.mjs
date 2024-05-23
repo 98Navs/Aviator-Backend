@@ -20,6 +20,9 @@ router.post('/otp', UserController.otp);
 // POST /forgetPassword
 router.post('/changePassword', UserController.changePassword);
 
+// POST /deductMoney -  Deducting amount from userWallet
+router.post('/deductAmount', Middleware.admin, UserController.deductAmount);
+
 // GET /users - Get all users
 router.get('/users', UserController.getAllUsers);
 
@@ -34,11 +37,5 @@ router.put('/users/:userId', UserController.updateUserByUserId);
 
 // DELETE /users/:userId - Delete a user by userId
 router.delete('/users/:userId', UserController.deleteUserByUserId);
-
-// POST /deductMoney -  Deducting amount from userWallet
-router.post('/deductAmount', Middleware.admin, UserController.deductAmount);
-
-// GET //users/filter - Filter user data on the basis of email, mobile, userId, or 
-router.get('/usersData/filter', UserController.filterUsers);
 
 export default router;

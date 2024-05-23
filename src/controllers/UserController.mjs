@@ -77,15 +77,21 @@ class UserController {
             res.status(400).json({ status: 400, success: false, message: error.message });
         }
     }
-
     static async getAllUsers(req, res) {
         try {
-            const { pageNumber = 1, perpage = 10 } = req.query;
+            const { search, startDate, endDate, pageNumber = 1, perpage = 20 } = req.query;
             const options = { page: Number(pageNumber), limit: Number(perpage) };
-            const users = await UserRepository.getAllUsers(options, req);
-            res.status(200).json({ status: 200, success: true, message: 'Users fetched successfully', ...users });
+            if (search || startDate || endDate) {
+                const filterParams = { search, ...(startDate && { startDate }), ...(endDate && { endDate }) };
+                const users = await UserRepository.filterUsers(filterParams, options, req);
+                if (!users.data.length) { return res.status(404).json({ status: 404, success: false, message: 'No data found for the provided details.' }); }
+                return res.status(200).json({ status: 200, success: true, message: 'Users filtered successfully', ...users });
+            } else {
+                const users = await UserRepository.getAllUsers(options, req);
+                return res.status(200).json({ status: 200, success: true, message: 'Users fetched successfully', ...users });
+            }
         } catch (error) {
-            res.status(500).json({ status: 500, success: false, message: error.message });
+            return res.status(500).json({ status: 500, success: false, message: error.message });
         }
     }
 
@@ -147,47 +153,22 @@ class UserController {
                 { name: 'bonusAmount', value: bonusAmount, userValue: user.bonusAmount },
                 { name: 'commissionAmount', value: commissionAmount, userValue: user.commissionAmount }
             ];
-            
             const insufficientFunds = amounts.filter(fund => fund.value > 0 && fund.userValue < fund.value);
             if (insufficientFunds.length > 0) {
                 const errorMessage = insufficientFunds.map(fund => `Insufficient ${fund.name}. Requested: ${fund.value}, Available: ${fund.userValue}`).join('; ');
                 const availableFunds = amounts.reduce((acc, fund) => ({ ...acc, [fund.name]: fund.userValue }), {});
                 return res.status(400).json({ status: 400, success: false, message: errorMessage, userId, availableFunds });
             }
-
             amounts.forEach(fund => { user[fund.name] -= fund.value; });
             await user.save();
             const admin = await UserRepository.getUserByUserId(709841);
             if (!admin) { return res.status(404).json({ status: 400, success: false, message: 'Admin not found.' }); }
             amounts.forEach(fund => { admin[fund.name] += fund.value; });
             await admin.save();
-
             const availableFunds = amounts.reduce((acc, fund) => ({ ...acc, [fund.name]: user[fund.name] }), {});
             res.status(200).json({ status: 200, success: true, message: `Deducted depositAmount: ${depositAmount}, winningsAmount: ${winningsAmount}, bonusAmount: ${bonusAmount}, commissionAmount: ${commissionAmount} from userId ${userId} and transferred to admin.`, availableFunds });
         } catch (error) {
             UserController.catchError(error, res);
-        }
-    }
-
-    static async filterUsers(req, res) {
-        try {
-            const { search, startDate, endDate, pageNumber = 1, perpage = 20 } = req.query;
-            if (!search && !startDate && !endDate) {
-                return res.status(400).json({ status: 400, success: false, message: 'Please provide at least one of the following fields: search, startDate, or endDate.' });
-            }
-            const filterParams = {
-                search,
-                ...(startDate && { startDate }),
-                ...(endDate && { endDate })
-            };
-            const options = { page: Number(pageNumber), limit: Number(perpage) };
-            const users = await UserRepository.filterUsers(filterParams, options, req);
-            if (!users.data.length) {
-                return res.status(404).json({ status: 404, success: false, message: 'No data found for the provided details.' });
-            }
-            res.status(200).json({ status: 200, success: true, message: 'Users filtered successfully', users });
-        } catch (error) {
-            res.status(500).json({ status: 500, success: false, message: error.message });
         }
     }
 
@@ -221,18 +202,15 @@ class UserController {
         const requiredFields = { userName, email, mobile, password };
         const missingFields = Object.keys(requiredFields).filter(key => !requiredFields[key]);
         if (missingFields.length > 0) { return { error: `Missing required fields: ${missingFields.join(', ')}` }; }
-
         const validators = {
             userName: { test: val => /^[a-zA-Z ]{4,}$/.test(val), message: 'Invalid userName. Must be at least 4 characters and only letters.' },
             email: { test: val => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val), message: 'Invalid email format.' },
             mobile: { test: val => /^\d{10}$/.test(val), message: 'Invalid mobile number. Must be 10 digits.' },
             password: { test: val => /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,}$/.test(val), message: 'Invalid password. Must be 8 characters with uppercase, lowercase, numbers, and special characters.' }
         };
-
         for (const [field, { test, message }] of Object.entries(validators)) {
             if (!test(arguments[0][field])) return { error: message };
         }
-
         const checkDuplicates = async () => {
             const emailLower = email.toLowerCase();
             const userNameLower = userName.toLowerCase();
@@ -244,7 +222,6 @@ class UserController {
             }
             return { error: null, userData: { ...arguments[0], userName: userNameLower, email: emailLower } };
         };
-
         return checkDuplicates();
     }
 }

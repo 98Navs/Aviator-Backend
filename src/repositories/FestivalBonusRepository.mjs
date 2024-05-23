@@ -14,6 +14,27 @@ class FestivalBonusRepository {
     static async deleteFestivalBonusByOfferId(offerId) { return await FestivalBonus.findOneAndDelete({ offerId }); }
 
     static async checkDuplicateName(name) { return await FestivalBonus.findOne({ name: { $regex: new RegExp(`^${name}$`, 'i') } }); }
+
+    static async filterFestivalBonuses(filterParams, options, req) {
+        const query = {};
+
+        if (filterParams.search) {
+            const searchRegex = new RegExp(`^${filterParams.search}`, 'i');
+            query.$or = [
+                { $expr: { $regexMatch: { input: { $toString: "$offerId" }, regex: searchRegex } } },
+                { $expr: { $regexMatch: { input: { $toString: "$deal" }, regex: searchRegex } } },
+                { name: searchRegex },
+                { bonusType: searchRegex },
+                { status: searchRegex }
+            ];
+        }
+        if (filterParams.startDate || filterParams.endDate) {
+            query.createdAt = {};
+            if (filterParams.startDate) query.startDate.$gte = new Date(filterParams.startDate);
+            if (filterParams.endDate) query.endDate.$lte = new Date(filterParams.endDate);
+        }
+        return await paginate(FestivalBonus, query, options.page, options.limit, req);
+    }
 }
 
 export default FestivalBonusRepository;
