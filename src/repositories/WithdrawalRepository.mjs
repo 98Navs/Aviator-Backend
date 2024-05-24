@@ -1,5 +1,5 @@
 
-import { generatePaginationUrls } from '../utils/index.mjs'
+import { generatePaginationUrls } from '../project_setup/Utils.mjs'
 import User from '../models/UserModel.mjs';
 import Withdrawal from '../models/WithdrawaModel.mjs';
 

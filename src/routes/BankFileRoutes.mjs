@@ -1,26 +1,27 @@
 //src/routes/BankFileRoutes.mjs
 import express from 'express';
 import BankController from '../controllers/BankFileController.mjs';
+import Middleware from '../project_setup/Middleware.mjs'
 
 const router = express.Router();
 
 
-router.post('/bankAccount', authAdminMiddleware, BankController.createBank);
+router.post('/bankAccount', Middleware.admin, BankController.createBank);
 
 
-router.get('/bankAccountAll', authAdminMiddleware, BankController.getAllBank);
+router.get('/bankAccountAll', Middleware.admin, BankController.getAllBank);
 
 
-router.get('/bankAccountActive',authAdminMiddleware,BankController.getActiveBank)
+router.get('/bankAccountActive',Middleware.admin,BankController.getActiveBank)
 
-router.get('/bankAccount/:id', authAdminMiddleware, BankController.getBankById);
-
-
-router.put('/bankAccount/:id', authAdminMiddleware, BankController.updateBankById);
+router.get('/bankAccount/:id', Middleware.admin, BankController.getBankById);
 
 
-router.delete('/bankAccount/:id', authAdminMiddleware, BankController.deleteBankById);
+router.put('/bankAccount/:id', Middleware.admin, BankController.updateBankById);
 
-router.get('/changeStatus/:id', authAdminMiddleware, BankController.changeStatusById)
+
+router.delete('/bankAccount/:id', Middleware.admin, BankController.deleteBankById);
+
+router.get('/changeStatus/:id', Middleware.admin, BankController.changeStatusById)
 
 export default router;
