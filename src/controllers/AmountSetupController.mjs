@@ -4,8 +4,6 @@ import AmountSetupRepository from '../repositories/AmountSetupRepository.mjs';
 class AmountSetupController {
     static async createAmountSetup(req, res) {
         try {
-            req.body.settingName = req.body.settingName ? req.body.settingName.trim() : '';
-            req.body.value = req.body.value ? req.body.value.trim() : '';
             const amountSetupData = await AmountSetupController.amountSetupValidation(req.body);
             const amountSetup = await AmountSetupRepository.createAmountSetup(amountSetupData);
             res.status(201).json({ status: 201, success: true, message: 'Amount Setup created successfully', amountSetup });
@@ -83,11 +81,13 @@ class AmountSetupController {
         if (typeof settingName !== 'string') { throw new ValidationError('SettingName must be a string'); }
         if (typeof value !== 'string') { throw new ValidationError('Value must be a string'); }
 
+        data.settingName = settingName.trim();
+        data.value = value.trim();        
         if (!isUpdate) {
-            const existingName = await AmountSetupRepository.checkDuplicateSettingName(settingName);
-            if (existingName) { throw new ValidationError('A setting name with this value already exists.'); }
+            const existingName = await AmountSetupRepository.checkDuplicateSettingName(data.settingName);
+            if (existingName) { throw new ValidationError('A setting with this name already exists.'); }
         }
-        return requiredFields;
+        return { settingName: data.settingName, value: data.value };
     }
 
     static async catchError(error, res) {
