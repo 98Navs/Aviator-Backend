@@ -1,11 +1,11 @@
-// src/controllers/DepositBonusController.mjs
+// src/controllers/AmountSetupController.mjs
 import AmountSetupRepository from '../repositories/AmountSetupRepository.mjs';
 
 class AmountSetupController {
     static async createAmountSetup(req, res) {
         try {
-            req.body.settingName = req.body.settingName.replace(/^\s+|\s+$/g, ''); 
-            req.body.value = req.body.value.replace(/^\s+|\s+$/g, ''); 
+            req.body.settingName = req.body.settingName ? req.body.settingName.trim() : '';
+            req.body.value = req.body.value ? req.body.value.trim() : '';
             const amountSetupData = await AmountSetupController.amountSetupValidation(req.body);
             const amountSetup = await AmountSetupRepository.createAmountSetup(amountSetupData);
             res.status(201).json({ status: 201, success: true, message: 'Amount Setup created successfully', amountSetup });
@@ -19,7 +19,7 @@ class AmountSetupController {
             const { search, pageNumber = 1, perpage = 10 } = req.query;
             const options = { page: Number(pageNumber), limit: Number(perpage) };
             if (search) {
-                const amountSetup = await AmountSetupRepository.filterAmountSetup( options, req);
+                const amountSetup = await AmountSetupRepository.filterAmountSetup({ search }, options, req);
                 if (!amountSetup.data.length) { return res.status(404).json({ status: 404, success: false, message: 'No data found for the provided details.' }); }
                 return res.status(200).json({ status: 200, success: true, message: 'Amount Setup filtered successfully', ...amountSetup });
             } else {
@@ -31,43 +31,43 @@ class AmountSetupController {
         }
     }
 
-    static async getAmountSetupByOfferId(req, res) {
+     static async getAmountSetupById(req, res) {
         try {
-            const { offerId } = req.params;
-            const amountSetup = await AmountSetupController.validateAndFetchAmountSetupByOfferId(offerId);
+            const { id } = req.params;
+            const amountSetup = await AmountSetupController.validateAndFetchAmountSetupById(id);
             res.status(200).json({ status: 200, success: true, message: 'Amount setup fetched successfully', amountSetup });
         } catch (error) {
             AmountSetupController.catchError(error, res);
         }
     }
 
-    static async updateAmountSetupByOfferId(req, res) {
+    static async updateAmountSetupById(req, res) {
         try {
-            const { offerId } = req.params;
-            await AmountSetupController.validateAndFetchAmountSetupByOfferId(offerId)
+            const { id } = req.params;
+            await AmountSetupController.validateAndFetchAmountSetupById(id);
             const amountSetupData = await AmountSetupController.amountSetupValidation(req.body, true);
-            const amountSetup = await AmountSetupRepository.updateAmountSetupByOfferId(offerId, amountSetupData);
+            const amountSetup = await AmountSetupRepository.updateAmountSetupById(id, amountSetupData);
             res.status(200).json({ status: 200, success: true, message: 'Amount setup updated successfully', amountSetup });
         } catch (error) {
             AmountSetupController.catchError(error, res);
         }
     }
 
-    static async deleteAmountSetupByOfferId(req, res) {
+    static async deleteAmountSetupById(req, res) {
         try {
-            const { offerId } = req.params;
-            await AmountSetupController.validateAndFetchAmountSetupByOfferId(offerId)
-            const amountSetup = await AmountSetupRepository.deleteAmountSetupByOfferId(offerId);
+            const { id } = req.params;
+            await AmountSetupController.validateAndFetchAmountSetupById(id);
+            const amountSetup = await AmountSetupRepository.deleteAmountSetupById(id);
             res.status(200).json({ status: 200, success: true, message: 'Amount setup deleted successfully', amountSetup });
         } catch (error) {
             AmountSetupController.catchError(error, res);
         }
     }
 
-    //Static Methods Only For This Class (Not To Be Used In Routes)
-    static async validateAndFetchAmountSetupByOfferId(offerId) {
-        if (!/^[0-9]{6}$/.test(offerId)) { throw new ValidationError('Invalid offerId format.'); }
-        const amountSetup = await AmountSetupRepository.getAmountSetupByOfferId(offerId);
+    // Static Methods Only For This Class (Not To Be Used In Routes)
+    static async validateAndFetchAmountSetupById(id) {
+        if (!/^[0-9a-fA-F]{24}$/.test(id)) { throw new ValidationError('Invalid Id format.'); }
+        const amountSetup = await AmountSetupRepository.getAmountSetupById(id);
         if (!amountSetup) { throw new NotFoundError('Amount setup not found.'); }
         return amountSetup;
     }

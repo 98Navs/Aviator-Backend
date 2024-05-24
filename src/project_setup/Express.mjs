@@ -24,8 +24,6 @@ export default async function setupExpressApp() {
     app.use(FestivalBonusRoutes);
     app.use(DepositBonusRoutes);
     app.use(AmountSetupRoutes);
-
-
     app.use(WithdrawalRoutes)
 
     // Start the server
