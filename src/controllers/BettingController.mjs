@@ -77,7 +77,7 @@ class BettingController {
 
     static async bettingValidation(data) {
         const { gameId, bettingId, userId, userName, amount, winAmount, status } = data;
-        const requiredFields = { gameId, bettingId, userId, userName, amount, status };
+        const requiredFields = { gameId, bettingId, userId, amount, status };
         const missingFields = Object.entries(requiredFields)
             .filter(([_, value]) => value === undefined || value === '')
             .map(([field]) => field.charAt(0).toUpperCase() + field.slice(1));
@@ -86,7 +86,7 @@ class BettingController {
         if (typeof gameId !== 'string') { throw new ValidationError('GameId must be a string'); }
         if (typeof bettingId !== 'number' || !/^[0-9]{6}$/.test(bettingId)) { throw new ValidationError('BettingId must be a number of 6 digits'); }
         if (typeof userId !== 'number' || !/^[0-9]{6}$/.test(userId)) { throw new ValidationError('UserId must be a number of 6 digits'); }
-        if (typeof userName !== 'string') { throw new ValidationError('UserName must be a string'); }
+        //if (typeof userName !== 'string') { throw new ValidationError('UserName must be a string'); }
         if (typeof amount !== 'number') { throw new ValidationError('Amount must be a number'); }
         if (typeof status !== 'string' ) { throw new ValidationError('Status must be a string'); }
         
@@ -102,11 +102,12 @@ class BettingController {
 
         const user = await UserRepository.getUserByUserId(userId);
         if (!user) { throw new NotFoundError(`User with this userId: ${userId} not found`); }
+        data.userName = user.userName;
         if (status === 'BetApplied') { user.playedAmount += amount; }
         else if (status === 'BetCancelled') { user.playedAmount -= amount; }
         await user.save();
 
-        return data;
+        return data ;
     }
 
     static async catchError(error, res) {
