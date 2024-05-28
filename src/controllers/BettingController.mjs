@@ -93,9 +93,12 @@ class BettingController {
         const validStatuses = ['BetApplied', 'BetCancelled', 'BetWon'];
         if (!validStatuses.includes(status)) { throw new ValidationError(`Bet Status must be one of: ${validStatuses.join(', ')}`); }
         
-        const validAmount = await AmountSetupRepository.getAmountSetupBySettingName('Minimum Bet Amount');
-        if (!validAmount) { throw NotFoundError('Amount Setting with name :- "Minimum Bet Amount" not found'); }
-        if (amount <= parseInt(validAmount.value)) { throw new ValidationError(`Betting amount must be greater then Minimum Bet Amount: ${validAmount.value}`); }
+        const validMinimumAmount = await AmountSetupRepository.getAmountSetupBySettingName('Minimum Bet Amount');
+        const validMaximumAmount = await AmountSetupRepository.getAmountSetupBySettingName('Maximum Bet Amount');
+        if (!validMinimumAmount) { throw NotFoundError('Amount Setting with name :- "Minimum Bet Amount" not found'); }
+        if (!validMaximumAmount) { throw NotFoundError('Amount Setting with name :- "Maximum Bet Amount" not found'); }
+        if (amount <= parseInt(validMinimumAmount.value)) { throw new ValidationError(`Betting amount must be greater then Minimum Bet Amount: ${validMinimumAmount.value}`); }
+        if (amount >= parseInt(validMaximumAmount.value)) { throw new ValidationError(`Betting amount must be greater then Minimum Bet Amount: ${validMaximumAmount.value}`); }
 
         const user = await UserRepository.getUserByUserId(userId);
         if (!user) { throw new NotFoundError(`User with this userId: ${userId} not found`); }

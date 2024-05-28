@@ -1,14 +1,14 @@
 //src/controllers/UserController.mjs
 import bcrypt from 'bcrypt';
-import UserRepository from "../repositories/UserRepository.mjs";
-import { GenerateSignature, sendEmail } from "../project_setup/Utils.mjs";
+import UserRepository from '../repositories/UserRepository.mjs';
+import AmountSetupRepository from '../repositories/AmountSetupRepository.mjs';
+import { GenerateSignature, sendEmail } from '../project_setup/Utils.mjs';
 
 class UserController {
     static async createUser(req, res) {
         try {
             const { error, userData } = await UserController.validateUserData(req.body);
             if (error) return res.status(400).json({ status: 400, success: false, message: error });
-            userData.password = await UserRepository.hashPassword(userData.password);
             const user = await UserRepository.createUser(userData);
             res.status(201).json({ status: 201, success: true, message: 'User created successfully', user });
         } catch (error) {
@@ -198,7 +198,7 @@ class UserController {
         return user;
     }
 
-    static async validateUserData({ userName, email, mobile, password, referenceCode }) {
+    static async validateUserData({ userName, email, mobile, password, referenceCode, bonusAmount }) {
         const requiredFields = { userName, email, mobile, password };
         const missingFields = Object.keys(requiredFields).filter(key => !requiredFields[key]);
         if (missingFields.length > 0) { return { error: `Missing required fields: ${missingFields.join(', ')}` }; }
@@ -220,7 +220,11 @@ class UserController {
                 const refUser = await UserRepository.getUserByReferenceCode(referenceCode.toUpperCase());
                 arguments[0].referenceCode = refUser ? referenceCode.toUpperCase() : 'admin';
             }
-            return { error: null, userData: { ...arguments[0], userName: userNameLower, email: emailLower } };
+            password = await UserRepository.hashPassword(password);
+            const joiningBonus = await AmountSetupRepository.getAmountSetupBySettingName('Initial Bonus');
+            if (!joiningBonus) { throw NotFoundError('Amount Setting with name :- "Initial Bonus" not found'); }
+            bonusAmount = parseInt(joiningBonus.value);
+            return { error: null, userData: { ...arguments[0], userName: userNameLower, email: emailLower, password, bonusAmount } };
         };
         return checkDuplicates();
     }
