@@ -9,6 +9,8 @@ class AmountSetupRepository {
 
     static async getAmountSetupById(id) { return await AmountSetup.findById(id); }
 
+    static async getAmountSetupBySettingName(settingName) { return await AmountSetup.findOne({ settingName }); }
+
     static async updateAmountSetupById(id, amountSetupData) { return await AmountSetup.findByIdAndUpdate(id, amountSetupData, { new: true }); }
 
     static async deleteAmountSetupById(id) { return await AmountSetup.findByIdAndDelete(id); }
