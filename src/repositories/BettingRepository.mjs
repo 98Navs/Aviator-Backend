@@ -9,8 +9,11 @@ class BettingRepository {
 
     static async getBettingById(id) { return await Betting.findById( id ); }
 
-    static async getBettingByBettingId(bettingId) { return await Betting.find({ bettingId }); }
-
+    static async getBettingByBettingId(bettingId) {
+        const betting = await Betting.find({ bettingId });
+        return betting.length > 0 ? betting : null;
+    }
+    
     static async updateBettingById(id, bettingData) {
         const betting = await Betting.findById(id);
         Object.assign(betting, bettingData);

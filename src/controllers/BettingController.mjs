@@ -34,7 +34,8 @@ class BettingController {
             const { bettingId } = req.params;
             if (!/^[0-9]{6}$/.test(bettingId)) { throw new ValidationError('Invalid bettingId format.'); }
             const betting = await BettingRepository.getBettingByBettingId(bettingId);
-            if (!betting) { throw new NotFoundError('Betting not found.'); }
+            if (!betting) { throw new NotFoundError('BettingID not found.'); }
+            console.log(betting);
             res.status(200).json({ status: 200, success: true, message: 'Bettings fetched successfully', betting });
         } catch (error) {
             BettingController.catchError(error, res);
