@@ -21,21 +21,24 @@ class BettingRepository {
 
     static async filterBetting(filterParams, options, req) {
         const query = {};
-
         if (filterParams.gameId) { query.gameId = filterParams.gameId; }
         if (filterParams.search) {
             const searchRegex = new RegExp(`^${filterParams.search}`, 'i');
+            const isNumeric = !isNaN(filterParams.search);
             query.$or = [
-                { bettingId: Number(filterParams.search) },
-                { userId: Number(filterParams.search) },
+                ...(isNumeric ? [{ bettingId: Number(filterParams.search) }, { userId: Number(filterParams.search) }] : []),
                 { userName: searchRegex },
                 { status: searchRegex }
             ];
         }
-        if (filterParams.startDate && filterParams.endDate) {
+        if (filterParams.startDate || filterParams.endDate) {
             query.createdAt = {};
             if (filterParams.startDate) query.createdAt.$gte = new Date(filterParams.startDate);
-            if (filterParams.endDate) query.createdAt.$lte = new Date(filterParams.endDate);
+            if (filterParams.endDate) {
+                const endDate = new Date(filterParams.endDate);
+                endDate.setHours(23, 59, 59, 999);
+                query.createdAt.$lte = endDate;
+            }
         }
         return await paginate(Betting, query, options.page, options.limit, req);
     }

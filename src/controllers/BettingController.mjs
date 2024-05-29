@@ -18,20 +18,17 @@ class BettingController {
         try {
             const { gameId, search, startDate, endDate, pageNumber = 1, perpage = 10 } = req.query;
             const options = { page: Number(pageNumber), limit: Number(perpage) };
-            if (gameId || search || startDate || endDate) {
-                const filterParams = { gameId, search, ...(startDate && { startDate }), ...(endDate && { endDate }) };
-                const betting = await BettingRepository.filterBetting(filterParams, options, req);
-                if (!betting.data.length) { return res.status(404).json({ status: 404, success: false, message: 'No data found for the provided details.' }); }
-                return res.status(200).json({ status: 200, success: true, message: 'Betting filtered successfully', ...betting });
-            } else {
-                const betting = await BettingRepository.getAllBetting(options, req);
-                return res.status(200).json({ status: 200, success: true, message: 'All betting fetched successfully', ...betting });
-            }
+            const filterParams = { gameId, search, startDate, endDate };
+            const betting = Object.keys(filterParams).length > 0 ?
+                await BettingRepository.filterBetting(filterParams, options, req) :
+                await BettingRepository.getAllBetting(options, req);
+            if (betting.data.length === 0) { return res.status(404).json({ status: 404, success: false, message: 'No data found for the provided details.' }); }
+            return res.status(200).json({ status: 200, success: true, message: 'Betting data fetched successfully', ...betting });
         } catch (error) {
             BettingController.catchError(error, res);
         }
     }
-
+    
     static async getBettingByBettingId(req, res) {
         try {
             const { bettingId } = req.params;
