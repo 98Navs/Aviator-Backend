@@ -1,33 +1,27 @@
 // src/repositories/BannerRepository.mjs
 import Banner from '../models/BannerModel.mjs';
+import { paginate } from '../project_setup/Utils.mjs';
+import fs from 'fs';
+import path from 'path';
 
 class BannerRepository {
-    static async createBanner(bannerData, imageFilename) {
-            bannerData.image = imageFilename;
-            return await Banner.create(bannerData);
-    }
+    static async createBanner(bannerData) { return await Banner.create(bannerData); }
 
-    static async getAllBanners() { return await Banner.find(); }
+    static async getAllBanners(options, req) { return await paginate(Banner, {}, options.page, options.limit, req); }
 
     static async getBannerById(id) { return await Banner.findById(id); }
 
-    static async updateBannerById(id, bannerData, imageFilename) {
-        try {
-            const banner = await Banner.findById(id);
-            if (!banner) return null;
+    static async updateBannerById(id, bannerData) { return await Banner.findByIdAndUpdate(id, bannerData); }
 
-            if (imageFilename) {
-                bannerData.image = imageFilename;
-            }
-
-            Object.assign(banner, bannerData);
-            return await banner.save();
-        } catch (error) {
-            throw error;
-        }
+    static async deleteBannerById(id, banner) {
+        await Promise.all(banner.images.map(image =>
+            fs.promises.unlink(path.join('src/public/uploads', image)).catch(err => {
+                if (err.code !== 'ENOENT') throw err;
+            })
+        ));
+        return Banner.findByIdAndDelete(id);
     }
-
-    static async deleteBannerById(id) { return await Banner.findByIdAndDelete(id); }
 }
+
 
 export default BannerRepository;

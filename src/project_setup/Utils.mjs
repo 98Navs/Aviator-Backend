@@ -27,16 +27,15 @@ export const ValidateUserSignature = (req) => validateRole(req, ['user', 'admin'
 const FILE_TYPE_MAP = { 'image/png': 'png', 'image/jpeg': 'jpeg', 'image/jpg': 'jpg' };
 
 const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(FILE_TYPE_MAP[file.mimetype] ? null : new Error('Invalid image type'), 'src/public/uploads');
-    },
+    destination: (req, file, cb) => { cb(FILE_TYPE_MAP[file.mimetype] ? null : new Error('Invalid image type'), 'src/public/uploads'); },
     filename: (req, file, cb) => {
-        const fileName = file.originalname.split(' ').join('-');
         const extension = FILE_TYPE_MAP[file.mimetype];
-        cb(null, `${fileName}-${Date.now()}.${extension}`);
+        const fileName = `${file.originalname.split(' ').join('-')}-${Date.now()}.${extension}`;
+        cb(null, fileName);
     }
 });
-export const uploadOptions = multer({ storage });
+export const uploadSingle = multer({ storage });
+export const uploadMultiple = uploadSingle.array('images', 9999999999);
 
 export const generatePaginationUrls = (req, page, totalPages, limit) => {
     const baseUrl = url.format({ protocol: req.protocol, host: req.get('host'), pathname: req.originalUrl.split('?')[0] });
