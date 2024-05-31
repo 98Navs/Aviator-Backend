@@ -1,12 +1,12 @@
 //scr/controllers/BankFileController.mjs
 import BankFileRepository from "../repositories/BankFileRepository.mjs";
-import { uploadSingle } from "../project_setup/Utils.mjs";
+import { uploadImages } from "../project_setup/Utils.mjs";
 import mongoose from 'mongoose';
 
 class BankController {
     static async createBank(req, res) {
         try {
-            uploadSingle.single('imageBarcode')(req, res, async function (err) {
+            uploadImages.single('imageBarcode')(req, res, async function (err) {
 
                 const { bankName, accountNumber, accountHolderName, ifscCode, upiId, imageBarcode } = req.body;
                 const file = req.file;
@@ -81,7 +81,7 @@ class BankController {
     static async updateBankById(req, res) {
         try {
 
-            uploadSingle.single('imageBarcode')(req, res, async function (err) {
+            uploadImages.single('imageBarcode')(req, res, async function (err) {
                 
                 const id = req.params.id;
 

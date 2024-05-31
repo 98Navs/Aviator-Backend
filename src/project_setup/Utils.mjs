@@ -34,8 +34,7 @@ const storage = multer.diskStorage({
         cb(null, fileName);
     }
 });
-export const uploadSingle = multer({ storage });
-export const uploadMultiple = uploadSingle.array('images', 9999999999);
+export const uploadImages = multer({ storage });
 
 export const generatePaginationUrls = (req, page, totalPages, limit) => {
     const baseUrl = url.format({ protocol: req.protocol, host: req.get('host'), pathname: req.originalUrl.split('?')[0] });

@@ -26,8 +26,7 @@ class BannerController {
     static async getBannerById(req, res) {
         try {
             const { id } = req.params;
-            await BannerController.validateAndFetchBannerById(id);
-            const banner = await BannerRepository.getBannerById(id);
+            const banner = await BannerController.validateAndFetchBannerById(id);
             res.status(200).json({ status: 200, success: true, message: 'Banner fetched successfully', banner });
         } catch (error) {
             BannerController.catchError(error, res);
