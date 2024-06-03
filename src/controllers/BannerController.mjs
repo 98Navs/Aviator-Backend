@@ -17,6 +17,7 @@ class BannerController {
             const { pageNumber = 1, perpage = 10 } = req.query;
             const options = { page: Number(pageNumber), limit: Number(perpage) };
             const banners = await BannerRepository.getAllBanners(options, req);
+            if (banners.data.length === 0) { return res.status(404).json({ status: 404, success: false, message: 'No data found for the provided details.' }); }
             res.status(200).json({ status: 200, success: true, message: 'Banners fetched successfully', ...banners });
         } catch (error) {
             BannerController.catchError(error, res);

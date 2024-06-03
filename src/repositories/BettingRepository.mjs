@@ -9,11 +9,14 @@ class BettingRepository {
 
     static async getBettingById(id) { return await Betting.findById( id ); }
 
-    static async getBettingByBettingId(bettingId) {
-        const betting = await Betting.find({ bettingId });
-        return betting.length > 0 ? betting : null;
-    }
-    
+    static async getBettingByBettingId(bettingId) { return await Betting.find({ bettingId }); }
+
+    static async getLatestBettingId() { return await Betting.findOne().sort({ createdAt: -1 }).exec(); }
+
+    static async countBetsByBettingId(bettingId) { return await Betting.countDocuments({ bettingId }); }
+
+    static async getBetsAfterCreatedAt(createdAt) { return await Betting.find({ createdAt: { $gte: new Date(createdAt) } }); }
+
     static async updateBettingById(id, bettingData) {
         const betting = await Betting.findById(id);
         Object.assign(betting, bettingData);

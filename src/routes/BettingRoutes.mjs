@@ -13,6 +13,15 @@ router.get('/getAllBetting', BettingController.getAllBetting);
 // GET /Route to get a specific Betting by its betting ID
 router.get('/getBettingByBettingId/:bettingId', BettingController.getBettingByBettingId);
 
+// GET /Route to get a latest Betting by its betting ID
+router.get('/getDetailsForLatestBettingId', BettingController.getDetailsForLatestBettingId);
+
+// GET /Route to get a latest Betting by its betting ID
+router.get('/getDistributionWalletDetails', BettingController.getDistributionWalletDetails);
+
+// GET /Route to get a latest Betting by its betting ID
+router.post('/getDistributionWalletDetails', BettingController.getDistributionWalletDetails);
+
 // PUT /Route to update a specific Betting by its ID
 router.put('/updateBettingById/:id', BettingController.updateBettingById);
 

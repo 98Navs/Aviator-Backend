@@ -28,7 +28,7 @@ class BettingController {
             BettingController.catchError(error, res);
         }
     }
-    
+
     static async getBettingByBettingId(req, res) {
         try {
             const { bettingId } = req.params;
@@ -36,6 +36,44 @@ class BettingController {
             const betting = await BettingRepository.getBettingByBettingId(bettingId);
             if (!betting) { throw new NotFoundError('BettingID not found.'); }
             res.status(200).json({ status: 200, success: true, message: 'Bettings fetched successfully', betting });
+        } catch (error) {
+            BettingController.catchError(error, res);
+        }
+    }
+
+    static async getDetailsForLatestBettingId(req, res) {
+        try {
+            const latestBettingId = await BettingRepository.getLatestBettingId();
+            const bettingId = latestBettingId.bettingId;
+            const betCount = await BettingRepository.countBetsByBettingId(bettingId);
+            const bettings = await BettingRepository.getBettingByBettingId(bettingId);
+            const totalAmount = bettings.reduce((total, bet) => total + bet.amount, 0);
+            res.status(200).json({ status: 200, success: true, message: 'Latest BettingId details fetched successfully', bettingId, betCount, totalAmount });
+        } catch (error) {
+            BettingController.catchError(error, res);
+        }
+    }
+
+    static async getDistributionWalletDetails(req, res) {
+        try {
+            let startTime = 0;
+            if (req.body.reset === true) {
+                const reset = await BettingRepository.getLatestBettingId();
+                const startTime = reset.createdAt;
+            
+                console.log(startTime);
+                const bettings = await BettingRepository.getBetsAfterCreatedAt(startTime);
+                const totalAmount = bettings.reduce((total, bet) => total + bet.amount, 0);
+                const totalWinAmount = bettings.reduce((total, bet) => total + bet.winAmount, 0);
+                const profit = totalAmount - totalWinAmount;
+                res.status(200).json({ status: 200, success: true, message: 'Latest distribution wallet details fetched successfully', profit });
+            } else {
+                const bettings = await BettingRepository.getBetsAfterCreatedAt(startTime);
+                const totalAmount = bettings.reduce((total, bet) => total + bet.amount, 0);
+                const totalWinAmount = bettings.reduce((total, bet) => total + bet.winAmount, 0);
+                const profit = totalAmount - totalWinAmount;
+                res.status(200).json({ status: 200, success: true, message: 'Latest distribution wallet details fetched successfully', profit });
+            }
         } catch (error) {
             BettingController.catchError(error, res);
         }
@@ -68,43 +106,76 @@ class BettingController {
     static async validateAndFetchBettingById(id) {
         if (!/^[0-9a-fA-F]{24}$/.test(id)) { throw new ValidationError('Invalid Id format.'); }
         const betting = await BettingRepository.getBettingById(id);
-        if (!betting) { throw new NotFoundError('Betting not found.'); }
+        if (!betting) { throw new NotFoundError('Betting ID not found.'); }
         return betting;
     }
 
     static async bettingValidation(data) {
-        const { gameId, bettingId, userId, userName, amount, winAmount, status } = data;
-        const requiredFields = { gameId, bettingId, userId, amount, status };
-        const missingFields = Object.entries(requiredFields)
-            .filter(([_, value]) => value === undefined || value === '')
-            .map(([field]) => field.charAt(0).toUpperCase() + field.slice(1));
-        if (missingFields.length > 0) { throw new ValidationError(`Missing required fields: ${missingFields.join(', ')}`); }
+        const { gameId, bettingId, userId, amount, winAmount, status } = data;
+        const requiredFields = ['gameId', 'bettingId', 'userId', 'amount', 'status'];
+        const missingFields = requiredFields.filter(field => !data[field]);
 
+        if (missingFields.length > 0) { throw new ValidationError(`Missing required fields: ${missingFields.map(field => field.charAt(0).toUpperCase() + field.slice(1)).join(', ')}`); }
         if (typeof gameId !== 'string') { throw new ValidationError('GameId must be a string'); }
-        if (typeof bettingId !== 'number' || !/^[0-9]{6}$/.test(bettingId)) { throw new ValidationError('BettingId must be a number of 6 digits'); }
-        if (typeof userId !== 'number' || !/^[0-9]{6}$/.test(userId)) { throw new ValidationError('UserId must be a number of 6 digits'); }
-        //if (typeof userName !== 'string') { throw new ValidationError('UserName must be a string'); }
+        if (!/^\d{6}$/.test(bettingId)) { throw new ValidationError('BettingId must be a number of 6 digits'); }
+        if (!/^\d{6}$/.test(userId)) { throw new ValidationError('UserId must be a number of 6 digits'); }
         if (typeof amount !== 'number') { throw new ValidationError('Amount must be a number'); }
-        if (typeof status !== 'string' ) { throw new ValidationError('Status must be a string'); }
-        
+        if (typeof status !== 'string') { throw new ValidationError('Status must be a string'); }
+
         const validStatuses = ['BetApplied', 'BetCancelled', 'BetWon'];
         if (!validStatuses.includes(status)) { throw new ValidationError(`Bet Status must be one of: ${validStatuses.join(', ')}`); }
-        
-        const validMinimumAmount = await AmountSetupRepository.getAmountSetupBySettingName('Minimum Bet Amount');
-        const validMaximumAmount = await AmountSetupRepository.getAmountSetupBySettingName('Maximum Bet Amount');
-        if (!validMinimumAmount) { throw NotFoundError('Amount Setting with name :- "Minimum Bet Amount" not found'); }
-        if (!validMaximumAmount) { throw NotFoundError('Amount Setting with name :- "Maximum Bet Amount" not found'); }
-        if (amount <= parseInt(validMinimumAmount.value)) { throw new ValidationError(`Betting amount must be greater then Minimum Bet Amount: ${validMinimumAmount.value}`); }
-        if (amount >= parseInt(validMaximumAmount.value)) { throw new ValidationError(`Betting amount must be greater then Minimum Bet Amount: ${validMaximumAmount.value}`); }
+
+        const [validMinimumAmount, validMaximumAmount] = await Promise.all([
+            AmountSetupRepository.getAmountSetupBySettingName('Minimum Bet Amount'),
+            AmountSetupRepository.getAmountSetupBySettingName('Maximum Bet Amount')
+        ]);
+
+        if (!validMinimumAmount || !validMaximumAmount) { throw new NotFoundError('One or both of the amount settings not found'); }
+
+        const minAmount = parseInt(validMinimumAmount.value);
+        const maxAmount = parseInt(validMaximumAmount.value);
+
+        if (amount <= minAmount) { throw new ValidationError(`Betting amount must be greater than Minimum Bet Amount: ${minAmount}`); }
+        if (amount >= maxAmount) { throw new ValidationError(`Betting amount must be less than Maximum Bet Amount: ${maxAmount}`); }
 
         const user = await UserRepository.getUserByUserId(userId);
-        if (!user) { throw new NotFoundError(`User with this userId: ${userId} not found`); }
+        if (!user) { throw new NotFoundError(`User with userId: ${userId} not found`); }
         data.userName = user.userName;
-        if (status === 'BetApplied') { user.playedAmount += amount; }
-        else if (status === 'BetCancelled') { user.playedAmount -= amount; }
-        await user.save();
 
-        return data ;
+        switch (status) {
+            case 'BetApplied':
+                BettingController.deductUserAmount(user, amount);
+                break;
+            case 'BetCancelled':
+                user.depositAmount += amount;
+                data.amount = 0;
+                break;
+            case 'BetWon':
+                user.winningsAmount += winAmount;
+                break;
+            default:
+                throw new ValidationError('Bet Status must be one of: BetApplied, BetCancelled, BetWon');
+        }
+
+        await user.save();
+        return data;
+    }
+
+    static deductUserAmount(user, amount) {
+        const deductionDetails = ['depositAmount', 'winningsAmount', 'bonusAmount', 'commissionAmount'];
+        let remainingAmount = amount;
+        const totalAvailable = deductionDetails.reduce((sum, source) => sum + user[source], 0);
+
+        for (const source of deductionDetails) {
+            if (user[source] >= remainingAmount) {
+                user[source] -= remainingAmount;
+                return;
+            } else {
+                remainingAmount -= user[source];
+                user[source] = 0;
+            }
+        }
+        if (remainingAmount > 0) { throw new ValidationError(`User with userId ${user.userId} does not have the available amount: ${totalAvailable} (required: ${amount}).`); }
     }
 
     static async catchError(error, res) {

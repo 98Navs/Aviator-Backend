@@ -24,18 +24,18 @@ router.post('/changePassword', UserController.changePassword);
 router.post('/deductAmount', Middleware.admin, UserController.deductAmount);
 
 // GET /users - Get all users
-router.get('/users', UserController.getAllUsers);
+router.get('/users', Middleware.admin, UserController.getAllUsers);
 
 // GET /users/:userId - Get a user by userId
-router.get('/users/:userId', UserController.getUserByUserId);
+router.get('/users/:userId', Middleware.admin, UserController.getUserByUserId);
 
 // GET /wallet/:userId - Get a user wallet details by userId
-router.get('/wallet/:userId', UserController.getWalletByUserId);
+router.get('/wallet/:userId', Middleware.admin, UserController.getWalletByUserId);
 
 // PUT /users/:userId - Update a user by userId
-router.put('/users/:userId', UserController.updateUserByUserId);
+router.put('/users/:userId', Middleware.admin, UserController.updateUserByUserId);
 
 // DELETE /users/:userId - Delete a user by userId
-router.delete('/users/:userId', UserController.deleteUserByUserId);
+router.delete('/users/:userId', Middleware.admin, UserController.deleteUserByUserId);
 
 export default router;
