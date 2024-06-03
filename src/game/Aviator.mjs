@@ -157,7 +157,7 @@ const createSocketServer = (app) => {
                             if (loadingCountdown === 0) {
                                 clearInterval(timeoutInterval);
                                 resetState();
-                                console.log(' Aviator BetID No. ' + nextGameBetID);
+                                console.log(' Aviator BetID ' + nextGameBetID);
                                 io.emit('gameStartSound');
                                 updateFetchedValueHistory(); // Update fetchedValueHistory
                                 timeoutInterval = null; // Reset the timeoutInterval variable
@@ -240,12 +240,12 @@ const createSocketServer = (app) => {
 
 
     //-----------------------------------Logic UserList -------------------------------------//
-    server.listen(process.env.PORT, () => {
-        console.log(`Server is running on port ${process.env.PORT}`);
-    }).on('error', (err) => {
-        console.log(err);
-        process.exit();
-    });
+    // server.listen(process.env.PORT, () => {
+    //     console.log(`Server is running on port ${process.env.PORT}`);
+    // }).on('error', (err) => {
+    //     console.log(err);
+    //     process.exit();
+    // });
 
 };
 

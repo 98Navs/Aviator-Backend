@@ -7,15 +7,22 @@ class BettingRepository {
 
     static async getAllBetting(options, req) { return await paginate(Betting, {}, options.page, options.limit, req); }
 
-    static async getBettingById(id) { return await Betting.findById( id ); }
+    static async getBettingById(id) { return await Betting.findById(id); }
+    
+    static async getCountAndBetsByBettingId(gameId, bettingId) {
+        const [count, bettings] = await Promise.all([
+            Betting.countDocuments({ gameId, bettingId }),
+            Betting.find({ gameId, bettingId })
+        ]);
 
-    static async getBettingByBettingId(bettingId) { return await Betting.find({ bettingId }); }
+        return { count, bettings };
+    }
+
+    static async getBettingByBettingId( gameId, bettingId ) { return await Betting.find({ gameId, bettingId }); }
 
     static async getLatestBettingId() { return await Betting.findOne().sort({ createdAt: -1 }).exec(); }
 
-    static async countBetsByBettingId(bettingId) { return await Betting.countDocuments({ bettingId }); }
-
-    static async getBetsAfterCreatedAt(createdAt) { return await Betting.find({ createdAt: { $gte: new Date(createdAt) } }); }
+    static async getBetsAfterCreatedAt(createdAt) { return await Betting.find({ createdAt: { $gt: new Date(createdAt) } }); }
 
     static async updateBettingById(id, bettingData) {
         const betting = await Betting.findById(id);

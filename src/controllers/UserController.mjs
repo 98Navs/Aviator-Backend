@@ -142,9 +142,10 @@ class UserController {
         }
     }
 
-    static async deductAmount(req, res) {
+    static async deductAmountByUserId(req, res) {
         try {
-            const { userId, depositAmount = 0, winningsAmount = 0, bonusAmount = 0, commissionAmount = 0 } = req.body;
+            const { userId } = req.params;
+            const { depositAmount = 0, winningsAmount = 0, bonusAmount = 0, commissionAmount = 0 } = req.body;
             const user = await UserController.validateAndFetchUserByUserId(userId);
             if (user.status == 'active') { throw new ValidationError('User satatus in active, amount can not be deducted if the user status is active') }
             const amounts = [

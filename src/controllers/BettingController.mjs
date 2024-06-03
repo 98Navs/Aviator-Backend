@@ -31,9 +31,9 @@ class BettingController {
 
     static async getBettingByBettingId(req, res) {
         try {
-            const { bettingId } = req.params;
+            const { gameId, bettingId } = req.query;
             if (!/^[0-9]{6}$/.test(bettingId)) { throw new ValidationError('Invalid bettingId format.'); }
-            const betting = await BettingRepository.getBettingByBettingId(bettingId);
+            const betting = await BettingRepository.getBettingByBettingId(gameId, bettingId);
             if (!betting) { throw new NotFoundError('BettingID not found.'); }
             res.status(200).json({ status: 200, success: true, message: 'Bettings fetched successfully', betting });
         } catch (error) {
@@ -43,37 +43,29 @@ class BettingController {
 
     static async getDetailsForLatestBettingId(req, res) {
         try {
-            const latestBettingId = await BettingRepository.getLatestBettingId();
-            const bettingId = latestBettingId.bettingId;
-            const betCount = await BettingRepository.countBetsByBettingId(bettingId);
-            const bettings = await BettingRepository.getBettingByBettingId(bettingId);
+            const { gameId, bettingId } = req.query;
+            if (!gameId || !bettingId) throw new ValidationError('Provide both gameId and bettingId');
+            const { count, bettings } = await BettingRepository.getCountAndBetsByBettingId(gameId, bettingId);
             const totalAmount = bettings.reduce((total, bet) => total + bet.amount, 0);
-            res.status(200).json({ status: 200, success: true, message: 'Latest BettingId details fetched successfully', bettingId, betCount, totalAmount });
+            const data = { gameId, bettingId, count, totalAmount };
+            res.status(200).json({ status: 200, success: true, message: 'Latest BettingId details fetched successfully', data });
         } catch (error) {
             BettingController.catchError(error, res);
         }
     }
 
+    static startTime = 0;
     static async getDistributionWalletDetails(req, res) {
         try {
-            let startTime = 0;
             if (req.body.reset === true) {
                 const reset = await BettingRepository.getLatestBettingId();
-                const startTime = reset.createdAt;
-            
-                console.log(startTime);
-                const bettings = await BettingRepository.getBetsAfterCreatedAt(startTime);
-                const totalAmount = bettings.reduce((total, bet) => total + bet.amount, 0);
-                const totalWinAmount = bettings.reduce((total, bet) => total + bet.winAmount, 0);
-                const profit = totalAmount - totalWinAmount;
-                res.status(200).json({ status: 200, success: true, message: 'Latest distribution wallet details fetched successfully', profit });
-            } else {
-                const bettings = await BettingRepository.getBetsAfterCreatedAt(startTime);
-                const totalAmount = bettings.reduce((total, bet) => total + bet.amount, 0);
-                const totalWinAmount = bettings.reduce((total, bet) => total + bet.winAmount, 0);
-                const profit = totalAmount - totalWinAmount;
-                res.status(200).json({ status: 200, success: true, message: 'Latest distribution wallet details fetched successfully', profit });
+                BettingController.startTime = reset.createdAt; 
             }
+            const bettings = await BettingRepository.getBetsAfterCreatedAt(BettingController.startTime);
+            const totalAmount = bettings.reduce((total, bet) => total + bet.amount, 0);
+            const totalWinAmount = bettings.reduce((total, bet) => total + bet.winAmount, 0);
+            const profit = totalAmount - totalWinAmount;
+            res.status(200).json({ status: 200, success: true, message: 'Distribution wallet details fetched successfully', profit });
         } catch (error) {
             BettingController.catchError(error, res);
         }

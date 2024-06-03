@@ -21,7 +21,7 @@ router.post('/otp', UserController.otp);
 router.post('/changePassword', UserController.changePassword);
 
 // POST /deductMoney -  Deducting amount from userWallet
-router.post('/deductAmount', Middleware.admin, UserController.deductAmount);
+router.post('/deductAmountByUserId/:userId', Middleware.admin, UserController.deductAmountByUserId);
 
 // GET /users - Get all users
 router.get('/users', Middleware.admin, UserController.getAllUsers);
