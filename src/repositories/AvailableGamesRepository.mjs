@@ -20,6 +20,7 @@ class AvailableGamesRepository {
         ));
         return await AvailableGames.findByIdAndUpdate(id, availableGamesData, { new: true });
     }
+    
     static async deleteAvailableGamesById(id, availableGames) {
         await Promise.all(availableGames.images.map(image =>
             fs.promises.unlink(path.join('src/public/uploads', image)).catch(err => {
@@ -29,6 +30,5 @@ class AvailableGamesRepository {
         return await AvailableGames.findByIdAndDelete(id);
     }
 }
-
 
 export default AvailableGamesRepository;

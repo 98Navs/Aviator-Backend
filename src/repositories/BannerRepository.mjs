@@ -20,7 +20,7 @@ class BannerRepository {
         ));
         return await Banner.findByIdAndUpdate(id, bannerData, { new: true });
     }
-    
+
     static async deleteBannerById(id, banner) {
         await Promise.all(banner.images.map(image =>
             fs.promises.unlink(path.join('src/public/uploads', image)).catch(err => {
@@ -30,6 +30,5 @@ class BannerRepository {
         return await Banner.findByIdAndDelete(id);
     }
 }
-
 
 export default BannerRepository;
