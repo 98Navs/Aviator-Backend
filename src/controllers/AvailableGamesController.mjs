@@ -4,8 +4,8 @@ import AvailableGamesRepository from "../repositories/AvailableGamesRepository.m
 class AvailableGamesController {
     static async createAvailableGame(req, res) {
         try {
-            const { AvailableGamesData } = await AvailableGamesController.availableGamesValidation(req);
-            const availableGames = await AvailableGamesRepository.createAvailableGames(AvailableGamesData);
+            const { availableGamesData } = await AvailableGamesController.availableGamesValidation(req);
+            const availableGames = await AvailableGamesRepository.createAvailableGames(availableGamesData);
             res.status(201).json({ status: 201, success: true, message: 'Available games created successfully', availableGames });
         } catch (error) {
             AvailableGamesController.catchError(error, res);
@@ -38,8 +38,8 @@ class AvailableGamesController {
         try {
             const { id } = req.params;
             await AvailableGamesController.validateAndFetchAvailableGameById(id);
-            const { availableGames } = await AvailableGamesController.availableGamesValidation(req);
-            const updatedAvailableGames = await AvailableGamesRepository.updateAvailableGamesById(id, availableGames);
+            const { availableGamesData } = await AvailableGamesController.availableGamesValidation(req);
+            const updatedAvailableGames = await AvailableGamesRepository.updateAvailableGamesById(id, availableGamesData);
             res.status(200).json({ status: 200, success: true, message: 'Available game updated successfully', updatedAvailableGames });
         } catch (error) {
             AvailableGamesController.catchError(error, res);
@@ -61,7 +61,7 @@ class AvailableGamesController {
     static async validateAndFetchAvailableGameById(id) {
         if (!/^[0-9a-fA-F]{24}$/.test(id)) { throw new ValidationError('Invalid Id format.'); }
         const availableGames = await AvailableGamesRepository.getAvailableGamesById(id);
-        if (!availableGames) { throw new NotFoundError('Banner not found.'); }
+        if (!availableGames) { throw new NotFoundError('Available game not found.'); }
         return availableGames;
     }
 
@@ -81,10 +81,10 @@ class AvailableGamesController {
         if (!validStatuses.includes(status)) { throw new ValidationError('Status must be one of: Active or Deactive'); }
 
         const imageFilenames = images.map(image => image.filename);
-        const AvailableGamesData = { name, status, images: imageFilenames };
-        AvailableGamesData.name = name.trim();
-        AvailableGamesData.status = status.trim();
-        return { AvailableGamesData } ;
+        const availableGamesData = { name, status, images: imageFilenames };
+        availableGamesData.name = name.trim();
+        availableGamesData.status = status.trim();
+        return { availableGamesData } ;
     }
 
     static async catchError(error, res) {
