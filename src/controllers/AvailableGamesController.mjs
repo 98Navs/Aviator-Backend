@@ -81,10 +81,10 @@ class AvailableGamesController {
         if (!validStatuses.includes(status)) { throw new ValidationError('Status must be one of: Active or Deactive'); }
 
         const imageFilenames = images.map(image => image.filename);
-        const availableGamesData = { name, status, images: imageFilenames };
-        availableGamesData.name = name.trim();
-        availableGamesData.status = status.trim();
-        return { availableGamesData };
+        const AvailableGamesData = { name, status, images: imageFilenames };
+        AvailableGamesData.name = name.trim();
+        AvailableGamesData.status = status.trim();
+        return { AvailableGamesData } ;
     }
 
     static async catchError(error, res) {
