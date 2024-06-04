@@ -29,22 +29,11 @@ class BettingController {
         }
     }
 
-    static async getBettingByBettingId(req, res) {
-        try {
-            const { gameId, bettingId } = req.query;
-            if (!/^[0-9]{6}$/.test(bettingId)) { throw new ValidationError('Invalid bettingId format.'); }
-            const betting = await BettingRepository.getBettingByBettingId(gameId, bettingId);
-            if (!betting) { throw new NotFoundError('BettingID not found.'); }
-            res.status(200).json({ status: 200, success: true, message: 'Bettings fetched successfully', betting });
-        } catch (error) {
-            BettingController.catchError(error, res);
-        }
-    }
-
     static async getDetailsForLatestBettingId(req, res) {
         try {
             const { gameId, bettingId } = req.query;
             if (!gameId || !bettingId) throw new ValidationError('Provide both gameId and bettingId');
+            if (!/^[0-9]{6}$/.test(bettingId)) { throw new ValidationError('Invalid bettingId format.'); }
             const { count, bettings } = await BettingRepository.getCountAndBetsByBettingId(gameId, bettingId);
             const totalAmount = bettings.reduce((total, bet) => total + bet.amount, 0);
             const data = { gameId, bettingId, count, totalAmount };
@@ -59,7 +48,7 @@ class BettingController {
         try {
             if (req.body.reset === true) {
                 const reset = await BettingRepository.getLatestBettingId();
-                BettingController.startTime = reset.createdAt; 
+                BettingController.startTime = reset.createdAt;
             }
             const bettings = await BettingRepository.getBetsAfterCreatedAt(BettingController.startTime);
             const totalAmount = bettings.reduce((total, bet) => total + bet.amount, 0);
@@ -70,6 +59,7 @@ class BettingController {
             BettingController.catchError(error, res);
         }
     }
+
 
     static async updateBettingById(req, res) {
         try {

@@ -18,8 +18,6 @@ class BettingRepository {
         return { count, bettings };
     }
 
-    static async getBettingByBettingId( gameId, bettingId ) { return await Betting.find({ gameId, bettingId }); }
-
     static async getLatestBettingId() { return await Betting.findOne().sort({ createdAt: -1 }).exec(); }
 
     static async getBetsAfterCreatedAt(createdAt) { return await Betting.find({ createdAt: { $gt: new Date(createdAt) } }); }

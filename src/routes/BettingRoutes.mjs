@@ -10,14 +10,8 @@ router.post('/createBetting', BettingController.createBetting);
 // GET /Route to get all Betting with pagination
 router.get('/getAllBetting', BettingController.getAllBetting);
 
-// GET /Route to get a specific Betting by its betting ID
-router.get('/getBettingByBettingId/:bettingId', BettingController.getBettingByBettingId);
-
 // GET /Route to get a latest Betting by its betting ID
 router.get('/getDetailsForLatestBettingId', BettingController.getDetailsForLatestBettingId);
-
-// GET /Route to get a latest Betting by its betting ID
-router.get('/getDistributionWalletDetails', BettingController.getDistributionWalletDetails);
 
 // GET /Route to get a latest Betting by its betting ID
 router.post('/getDistributionWalletDetails', BettingController.getDistributionWalletDetails);

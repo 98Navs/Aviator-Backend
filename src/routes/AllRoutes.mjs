@@ -9,3 +9,4 @@ export { default as WithdrawalRoutes } from './WithdrawalRoutes.mjs';
 export { default as AmountSetupRoutes } from './AmountSetupRoutes.mjs';
 export { default as BettingRoutes } from './BettingRoutes.mjs';
 export { default as BannerRoutes } from './BannerRoutes.mjs';
+export { default as AvailableGamesRoutes } from './AvailableGamesRoutes.mjs';
