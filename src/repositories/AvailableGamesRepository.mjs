@@ -26,7 +26,7 @@ class AvailableGamesRepository {
                 if (err.code !== 'ENOENT') throw err;
             })
         ));
-        return AvailableGames.findByIdAndDelete(id);
+        return await AvailableGames.findByIdAndDelete(id);
     }
 }
 

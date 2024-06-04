@@ -11,15 +11,23 @@ class BannerRepository {
 
     static async getBannerById(id) { return await Banner.findById(id); }
 
-    static async updateBannerById(id, bannerData) { return await Banner.findByIdAndUpdate(id, bannerData); }
-
+    static async updateBannerById(id, bannerData) {
+        const existingBanner = await Banner.findById(id);
+        await Promise.all(existingBanner.images.map(image =>
+            fs.promises.unlink(path.join('src/public/uploads', image)).catch(err => {
+                if (err.code !== 'ENOENT') throw err;
+            })
+        ));
+        return await Banner.findByIdAndUpdate(id, bannerData, { new: true });
+    }
+    
     static async deleteBannerById(id, banner) {
         await Promise.all(banner.images.map(image =>
             fs.promises.unlink(path.join('src/public/uploads', image)).catch(err => {
                 if (err.code !== 'ENOENT') throw err;
             })
         ));
-        return Banner.findByIdAndDelete(id);
+        return await Banner.findByIdAndDelete(id);
     }
 }
 
