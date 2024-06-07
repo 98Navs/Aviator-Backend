@@ -5,7 +5,7 @@ import { ErrorHandler, ValidationError, NotFoundError } from '../controllers/Err
 class DepositBonusController {
     static async createDepositBonus(req, res) {
         try {
-            const depositBonusData = await this.depositBonusValidation(req.body);
+            const depositBonusData = await DepositBonusController.depositBonusValidation(req.body);
             const depositBonus = await DepositBonusRepository.createDepositBonus(depositBonusData);
             res.status(201).json({ status: 201, success: true, message: 'Deposit bonus created successfully', depositBonus });
         } catch (error) {
@@ -30,7 +30,7 @@ class DepositBonusController {
     static async getDepositBonusByOfferId(req, res) {
         try {
             const { offerId } = req.params;
-            const depositBonus = await this.validateAndFetchDepositBonusByOfferId(offerId);
+            const depositBonus = await DepositBonusController.validateAndFetchDepositBonusByOfferId(offerId);
             res.status(200).json({ status: 200, success: true, message: 'Deposit bonus fetched successfully', depositBonus });
         } catch (error) {
             ErrorHandler.catchError(error, res);
@@ -40,8 +40,8 @@ class DepositBonusController {
     static async updateDepositBonusByOfferId(req, res) {
         try {
             const { offerId } = req.params;
-            await this.validateAndFetchDepositBonusByOfferId(offerId)
-            const depositBonusData = await this.depositBonusValidation(req.body, true);
+            await DepositBonusController.validateAndFetchDepositBonusByOfferId(offerId)
+            const depositBonusData = await DepositBonusController.depositBonusValidation(req.body, true);
             const depositBonus = await DepositBonusRepository.updateDepositBonusByOfferId(offerId, depositBonusData);
             res.status(200).json({ status: 200, success: true, message: 'Deposit bonus updated successfully', depositBonus });
         } catch (error) {
@@ -52,7 +52,7 @@ class DepositBonusController {
     static async deleteDepositBonusByOfferId(req, res) {
         try {
             const { offerId } = req.params;
-            await this.validateAndFetchDepositBonusByOfferId(offerId)
+            await DepositBonusController.validateAndFetchDepositBonusByOfferId(offerId)
             const festivalBonus = await DepositBonusRepository.deleteDepositBonusByOfferId(offerId);
             res.status(200).json({ status: 200, success: true, message: 'Deposit bonus deleted successfully', festivalBonus });
         } catch (error) {

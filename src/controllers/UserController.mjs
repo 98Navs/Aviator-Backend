@@ -21,7 +21,7 @@ class UserController {
     static async getUserByUserId(req, res) {
         try {
             const { userId } = req.params;
-            const user = await this.validateAndFetchUserByUserId(userId);
+            const user = await UserController.validateAndFetchUserByUserId(userId);
             res.status(200).json({ status: 200, success: true, message: `Data fetched successfully for userId ${userId}`, user });
         } catch (error) {
             ErrorHandler.catchError(error, res);
@@ -31,7 +31,7 @@ class UserController {
     static async getWalletByUserId(req, res) {
         try {
             const { userId } = req.params;
-            const user = await this.validateAndFetchUserByUserId(userId);
+            const user = await UserController.validateAndFetchUserByUserId(userId);
             const data = { wallet: user.wallet, depositAmount: user.depositAmount, bonusAmount: user.bonusAmount, commissionAmount: user.commissionAmount, winningsAmount: user.winningsAmount };
             res.status(200).json({ status: 200, success: true, message: `Wallet data fetched successfully for userId ${userId}`, data });
         } catch (error) {
@@ -42,7 +42,7 @@ class UserController {
     static async updateUserByUserId(req, res) {
         try {
             const { userId } = req.params;
-            await this.validateAndFetchUserByUserId(userId);
+            await UserController.validateAndFetchUserByUserId(userId);
             const userData = await UserRegistrationController.validateUserData(req.body, true)
             const updatedUser = await UserRepository.updateUserByUserId(userId, userData);
             res.status(200).json({ status: 200, success: true, message: `Data updated successfully for userId ${userId}`, updatedUser });
@@ -54,7 +54,7 @@ class UserController {
     static async deleteUserByUserId(req, res) {
         try {
             const { userId } = req.params;
-            await this.validateAndFetchUserByUserId(userId);
+            await UserController.validateAndFetchUserByUserId(userId);
             const deleteUser = await UserRepository.deleteUserByUserId(userId);
             res.status(200).json({ status: 200, success: true, message: `Data deleted successfully for userId ${userId}`, deleteUser });
         } catch (error) {
@@ -66,7 +66,7 @@ class UserController {
         try {
             const { userId } = req.params;
             const { depositAmount = 0, winningsAmount = 0, bonusAmount = 0, commissionAmount = 0 } = req.body;
-            const user = await this.validateAndFetchUserByUserId(userId);
+            const user = await UserController.validateAndFetchUserByUserId(userId);
             if (user.status === 'active') { throw new ValidationError('User satatus in active, amount can not be deducted if the user status is active'); }
             const amounts = [
                 { name: 'depositAmount', value: depositAmount, userValue: user.depositAmount },

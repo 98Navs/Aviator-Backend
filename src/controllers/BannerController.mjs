@@ -5,7 +5,7 @@ import { ErrorHandler, ValidationError, NotFoundError } from '../controllers/Err
 class BannerController {
     static async createBanner(req, res) {
         try {
-            const bannerData = await this.bannerValidation(req);
+            const bannerData = await BannerController.bannerValidation(req);
             const banner = await BannerRepository.createBanner( bannerData );
             res.status(201).json({ status: 201, success: true, message: 'Banner created successfully', banner });
         } catch (error) {
@@ -27,7 +27,7 @@ class BannerController {
     static async getBannerById(req, res) {
         try {
             const { id } = req.params;
-            const banner = await this.validateAndFetchBannerById(id);
+            const banner = await BannerController.validateAndFetchBannerById(id);
             res.status(200).json({ status: 200, success: true, message: 'Banner fetched successfully', banner });
         } catch (error) {
             ErrorHandler.catchError(error, res);
@@ -37,8 +37,8 @@ class BannerController {
     static async updateBannerById(req, res) {
         try {
             const { id } = req.params;
-            await this.validateAndFetchBannerById(id);
-            const bannerData = await this.bannerValidation(req, true);
+            await BannerController.validateAndFetchBannerById(id);
+            const bannerData = await BannerController.bannerValidation(req, true);
             const updatedBanner = await BannerRepository.updateBannerById(id, bannerData);
             res.status(200).json({ status: 200, success: true, message: 'Banner updated successfully', updatedBanner });
         } catch (error) {
@@ -49,7 +49,7 @@ class BannerController {
     static async deleteBannerById(req, res) {
         try {
             const { id } = req.params;
-            const banner = await this.validateAndFetchBannerById(id);
+            const banner = await BannerController.validateAndFetchBannerById(id);
             const deletedBanner = await BannerRepository.deleteBannerById(id, banner);
             res.status(200).json({ status: 200, success: true, message: 'Banner deleted successfully', deletedBanner });
         } catch (error) {

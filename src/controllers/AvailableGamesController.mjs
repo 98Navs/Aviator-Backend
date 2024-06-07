@@ -5,7 +5,7 @@ import { ErrorHandler, ValidationError, NotFoundError } from '../controllers/Err
 class AvailableGamesController {
     static async createAvailableGame(req, res) {
         try {
-            const availableGamesData = await this.availableGamesValidation(req);
+            const availableGamesData = await AvailableGamesController.availableGamesValidation(req);
             const availableGames = await AvailableGamesRepository.createAvailableGames(availableGamesData);
             res.status(201).json({ status: 201, success: true, message: 'Available games created successfully', availableGames });
         } catch (error) {
@@ -27,7 +27,7 @@ class AvailableGamesController {
     static async getAvailableGamesById(req, res) {
         try {
             const { id } = req.params;
-            const availableGames = await this.validateAndFetchAvailableGameById(id);
+            const availableGames = await AvailableGamesController.validateAndFetchAvailableGameById(id);
             res.status(200).json({ status: 200, success: true, message: 'Available game fetched successfully', availableGames });
         } catch (error) {
             ErrorHandler.catchError(error, res);
@@ -37,8 +37,8 @@ class AvailableGamesController {
     static async updateAvailableGameById(req, res) {
         try {
             const { id } = req.params;
-            await this.validateAndFetchAvailableGameById(id);
-            const availableGamesData = await this.availableGamesValidation(req, true);
+            await AvailableGamesController.validateAndFetchAvailableGameById(id);
+            const availableGamesData = await AvailableGamesController.availableGamesValidation(req, true);
             const updatedAvailableGames = await AvailableGamesRepository.updateAvailableGamesById(id, availableGamesData);
             res.status(200).json({ status: 200, success: true, message: 'Available game updated successfully', updatedAvailableGames });
         } catch (error) {
@@ -49,7 +49,7 @@ class AvailableGamesController {
     static async deleteAvailableGameById(req, res) {
         try {
             const { id } = req.params;
-            const availableGames = await this.validateAndFetchAvailableGameById(id);
+            const availableGames = await AvailableGamesController.validateAndFetchAvailableGameById(id);
             const deletedAvailableGames = await AvailableGamesRepository.deleteAvailableGamesById(id, availableGames);
             res.status(200).json({ status: 200, success: true, message: 'Available game deleted successfully', deletedAvailableGames });
         } catch (error) {

@@ -2,13 +2,19 @@
 import { Schema, model } from 'mongoose';
 
 const userSchema = new Schema({
+    image: { type: Buffer, default: Buffer.alloc(0) },
     userId: { type: Number, default: () => Math.floor(100000 + Math.random() * 900000), unique: true },
     userName: { type: String, required: true },
     email: { type: String, required: true, unique: true },
     mobile: { type: Number, required: true, unique: true },
     password: { type: String, required: true },
     role: { type: String, enum: ['user', 'admin', 'affiliate'], default: 'user' },
-    image: { type: Buffer, default: Buffer.alloc(0) },
+    commissionPercentage: { type: Number, default: 0 },
+    playedAmount: { type: Number, default: 0 },
+    playedGame: { type: [String] },
+    lifetimeProfit: { type: Number, default: 0 },
+    lifetimeLoss: { type: Number, default: 0 },
+    
     depositAmount: { type: Number, default: 0 },
     winningsAmount: { type: Number, default: 0 },
     bonusAmount: { type: Number, default: 0 },
@@ -17,13 +23,9 @@ const userSchema = new Schema({
     lifetimeWithdrawalAmount: { type: Number, default: 0 },
     lifetimeNumberOfDeposit: { type: Number, default: 0 },
     lifetimeNumberOfWithdrawal: { type: Number, default: 0 },
-    playedAmount: { type: Number, default: 0 },
-    commissionPercentage: { type: Number, default: 0 },
-    playedGame: { type: [String] },
+    
     promoCode: { type: String, default: () => Math.random().toString(36).slice(2, 10).toUpperCase() },
     referenceCode: { type: String },
-    lifetimeProfit: { type: Number, default: 0 },
-    lifetimeLoss: { type: Number, default: 0},
     status: { type: String, default: 'Active' },
     otp: { type: Number, default: null },
     accessiableGames: { type: [String], default: ["Aviator", "Snakes"] },
@@ -57,7 +59,7 @@ userSchema.virtual('wallet').get(function () {
     return this.depositAmount + this.winningsAmount + this.bonusAmount + this.commissionAmount;
 });
 userSchema.virtual('weightage').get(function () {
-    return ((this.lifetimeProfit - this.lifetimeLoss) / this.playedAmount) * 100;
+    return (this.playedAmount - (this.lifetimeProfit + this.lifetimeLoss) / this.playedAmount) * 100;
 });
 
 

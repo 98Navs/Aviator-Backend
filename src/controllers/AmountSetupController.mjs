@@ -5,7 +5,7 @@ import { ErrorHandler, ValidationError, NotFoundError } from '../controllers/Err
 class AmountSetupController {
     static async createAmountSetup(req, res) {
         try {
-            const amountSetupData = await this.amountSetupValidation(req.body);
+            const amountSetupData = await AmountSetupController.amountSetupValidation(req.body);
             const amountSetup = await AmountSetupRepository.createAmountSetup(amountSetupData);
             res.status(201).json({ status: 201, success: true, message: 'Amount Setup created successfully', amountSetup });
         } catch (error) {
@@ -30,7 +30,7 @@ class AmountSetupController {
      static async getAmountSetupById(req, res) {
         try {
             const { id } = req.params;
-            const amountSetup = await this.validateAndFetchAmountSetupById(id);
+            const amountSetup = await AmountSetupController.validateAndFetchAmountSetupById(id);
             res.status(200).json({ status: 200, success: true, message: 'Amount setup fetched successfully', amountSetup });
         } catch (error) {
             ErrorHandler.catchError(error, res);
@@ -40,8 +40,8 @@ class AmountSetupController {
     static async updateAmountSetupById(req, res) {
         try {
             const { id } = req.params;
-            await this.validateAndFetchAmountSetupById(id);
-            const amountSetupData = await this.amountSetupValidation(req.body, true);
+            await AmountSetupController.validateAndFetchAmountSetupById(id);
+            const amountSetupData = await AmountSetupController.amountSetupValidation(req.body, true);
             const amountSetup = await AmountSetupRepository.updateAmountSetupById(id, amountSetupData);
             res.status(200).json({ status: 200, success: true, message: 'Amount setup updated successfully', amountSetup });
         } catch (error) {
@@ -52,7 +52,7 @@ class AmountSetupController {
     static async deleteAmountSetupById(req, res) {
         try {
             const { id } = req.params;
-            await this.validateAndFetchAmountSetupById(id);
+            await AmountSetupController.validateAndFetchAmountSetupById(id);
             const amountSetup = await AmountSetupRepository.deleteAmountSetupById(id);
             res.status(200).json({ status: 200, success: true, message: 'Amount setup deleted successfully', amountSetup });
         } catch (error) {

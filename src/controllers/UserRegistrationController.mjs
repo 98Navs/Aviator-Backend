@@ -8,7 +8,7 @@ import { ErrorHandler, ValidationError, NotFoundError } from './ErrorHandler.mjs
 class UserRegistrationController {
     static async createUser(req, res) {
         try {
-            const userData = await this.validateUserData(req.body);
+            const userData = await UserRegistrationController.validateUserData(req.body);
             const user = await UserRepository.createUser(userData);
             res.status(201).json({ status: 201, success: true, message: 'User created successfully', user });
         } catch (error) {
@@ -19,10 +19,10 @@ class UserRegistrationController {
     static async signIn(req, res) {
         try {
             const { user, password } = req.body;
-            this.validatePresence({ user, password });
-            const existingUser = await this.getUser(user);
+            UserRegistrationController.validatePresence({ user, password });
+            const existingUser = await UserRegistrationController.getUser(user);
             if (existingUser.status != 'Active') { throw new ValidationError('User account has been suspended'); }
-            if (!await bcrypt.compare(password, existingUser.password)) { throw new ValidationError('Invalid credentials.'); }
+            if (!bcrypt.compare(password, existingUser.password)) { throw new ValidationError('Invalid credentials.'); }
             const token = await GenerateSignature({ userId: existingUser.userId, email: existingUser.email, objectId: existingUser._id, role: existingUser.role, accessiableGames: existingUser.accessiableGames }, res);
             res.status(200).json({ status: 200, success: true, message: 'Sign in successful!', user: { userId: existingUser.userId, email: existingUser.email, token } });
         } catch (error) {
@@ -33,8 +33,8 @@ class UserRegistrationController {
     static async forgetPassword(req, res) {
         try {
             const { email } = req.body;
-            this.validatePresence({ email });
-            this.validateEmailFormat(email);
+            UserRegistrationController.validatePresence({ email });
+            UserRegistrationController.validateEmailFormat(email);
             const user = await UserRepository.getUserByEmail(email);
             if (!user) throw new NotFoundError('User not found.');
             const otp = Math.floor(100000 + Math.random() * 900000);
@@ -50,7 +50,7 @@ class UserRegistrationController {
     static async otp(req, res) {
         try {
             const { email, otp } = req.body;
-            this.validatePresence({ email, otp });
+            UserRegistrationController.validatePresence({ email, otp });
             const user = await UserRepository.getUserByEmail(email);
             if (otp !== user.otp) throw new ValidationError('Invalid OTP.');
             user.otp = null;
@@ -64,8 +64,8 @@ class UserRegistrationController {
     static async changePassword(req, res) {
         try {
             const { email, password } = req.body;
-            this.validatePresence({ email, password });
-            this.validatePasswordFormat(password);
+            UserRegistrationController.validatePresence({ email, password });
+            UserRegistrationController.validatePasswordFormat(password);
             const user = await UserRepository.getUserByEmail(email);
             if (!user) throw new NotFoundError('User not found.');
             user.password = await UserRepository.hashPassword(password);
@@ -87,24 +87,24 @@ class UserRegistrationController {
 
     static async validateUserData(data, isUpdate = false) {
         const { userName, email, mobile, password, referenceCode, role, status } = data;
-        if (!isUpdate) { this.validatePresence({ userName, email, mobile, password }); }
-        if (isUpdate) { this.validatePresence({ userName, email, mobile, role, status }); }
-        this.validateUserNameFormat(userName);
-        this.validateEmailFormat(email);
-        this.validateMobileFormat(mobile);
-        this.validatePasswordFormat(password);
+        if (!isUpdate) { UserRegistrationController.validatePresence({ userName, email, mobile, password }); }
+        if (isUpdate) { UserRegistrationController.validatePresence({ userName, email, mobile, role, status }); }
+        UserRegistrationController.validateUserNameFormat(userName);
+        UserRegistrationController.validateEmailFormat(email);
+        UserRegistrationController.validateMobileFormat(mobile);
+        UserRegistrationController.validatePasswordFormat(password);
 
-        if (role) this.validateRole(role);
-        if (status) this.validateStatus(status);
+        if (role) UserRegistrationController.validateRole(role);
+        if (status) UserRegistrationController.validateStatus(status);
 
         data.userName = userName.trim();
         data.email = email.trim();
 
         if (!isUpdate) {
-            await this.checkExistingUser(data.email, mobile);
+            await UserRegistrationController.checkExistingUser(data.email, mobile);
             data.password = await UserRepository.hashPassword(password);
-            data.bonusAmount = await this.getInitialBonus();
-            data = await this.handleReferral(data, referenceCode);
+            data.bonusAmount = await UserRegistrationController.getInitialBonus();
+            data = await UserRegistrationController.handleReferral(data, referenceCode);
         }
         return data;
     }
@@ -144,9 +144,9 @@ class UserRegistrationController {
         if (referenceCode) {
             data.referenceCode = referenceCode.toUpperCase();
             const referedByUser = await UserRepository.getUserByReferenceCode(data.referenceCode);
-            if (!referedByUser) { data = await this.assignAdminReferral(data); }
-            else { await this.updateReferralUser(referedByUser, data); }
-        } else { data = await this.assignAdminReferral(data);}
+            if (!referedByUser) { data = await UserRegistrationController.assignAdminReferral(data); }
+            else { await UserRegistrationController.updateReferralUser(referedByUser, data); }
+        } else { data = await UserRegistrationController.assignAdminReferral(data);}
         return data;
     }
 
@@ -163,7 +163,7 @@ class UserRegistrationController {
         const perReferalBonus = await AmountSetupRepository.getAmountSetupBySettingName('Per Referal Bonus');
         if (!perReferalBonus) { throw new NotFoundError(`Amount Setting with name "Per Referal Bonus" not found`); }
         referedByUser.bonusAmount += parseInt(perReferalBonus.value); 
-        if (referedByUser.role === "user") { await this.updateUserReferralCommission(referedByUser); }
+        if (referedByUser.role === "user") { await UserRegistrationController.updateUserReferralCommission(referedByUser); }
         else if (referedByUser.role === "affiliate") { data.accessiableGames = referedByUser.accessiableGames; }
         await referedByUser.save();
     }

@@ -7,7 +7,7 @@ import { ErrorHandler, ValidationError, NotFoundError } from '../controllers/Err
 class BettingController {
     static async createBetting(req, res) {
         try {
-            const bettingData = await this.bettingValidation(req.body);
+            const bettingData = await BettingController.bettingValidation(req.body);
             const betting = await BettingRepository.createBetting(bettingData);
             res.status(201).json({ status: 201, success: true, message: 'Betting created successfully', betting });
         } catch (error) {
@@ -48,9 +48,9 @@ class BettingController {
         try {
             if (req.body.reset === true) {
                 const reset = await BettingRepository.getLatestBettingId();
-                this.startTime = reset.createdAt;
+                BettingController.startTime = reset.createdAt;
             }
-            const bettings = await BettingRepository.getBetsAfterCreatedAt(this.startTime);
+            const bettings = await BettingRepository.getBetsAfterCreatedAt(BettingController.startTime);
             const totalAmount = bettings.reduce((total, bet) => total + bet.amount, 0);
             const totalWinAmount = bettings.reduce((total, bet) => total + bet.winAmount, 0);
             const profit = totalAmount - totalWinAmount;
@@ -63,8 +63,8 @@ class BettingController {
     static async updateBettingById(req, res) {
         try {
             const { id } = req.params;
-            await this.validateAndFetchBettingById(id);
-            const bettingData = await this.bettingValidation(req.body);
+            await BettingController.validateAndFetchBettingById(id);
+            const bettingData = await BettingController.bettingValidation(req.body);
             const betting = await BettingRepository.updateBettingById(id, bettingData);
             res.status(200).json({ status: 200, success: true, message: 'Betting updated successfully', betting });
         } catch (error) {
@@ -75,7 +75,7 @@ class BettingController {
     static async deleteBettingById(req, res) {
         try {
             const { id } = req.params;
-            await this.validateAndFetchBettingById(id);
+            await BettingController.validateAndFetchBettingById(id);
             const betting = await BettingRepository.deleteBettingById(id);
             res.status(200).json({ status: 200, success: true, message: 'Betting deleted successfully', betting });
         } catch (error) {
@@ -121,7 +121,7 @@ class BettingController {
 
         switch (status) {
             case 'BetApplied':
-                this.deductUserAmount(user, amount);
+                BettingController.deductUserAmount(user, amount);
                 break;
             case 'BetCancelled':
                 user.depositAmount += amount;
