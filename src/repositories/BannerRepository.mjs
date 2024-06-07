@@ -10,6 +10,10 @@ class BannerRepository {
     static async getAllBanners(options, req) { return await paginate(Banner, {}, options.page, options.limit, req); }
 
     static async getBannerById(id) { return await Banner.findById(id); }
+    
+    static async checkDuplicateBannrName(name) {return await Banner.findOne({ name: new RegExp(`^${name}$`, 'i') }); }
+    
+    static async checkDuplicateGroupId(groupId) { return await Banner.findOne({ groupId: new RegExp(`^${groupId}$`, 'i') }); }
 
     static async updateBannerById(id, bannerData) {
         const existingBanner = await Banner.findById(id);

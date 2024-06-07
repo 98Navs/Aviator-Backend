@@ -1,24 +1,25 @@
 //src/routes/UserRoutes.mjs
 import express from 'express';
 import UserController from '../controllers/UserController.mjs';
+import UserRegistrationController from '../controllers/UserRegistrationController.mjs';
 import Middleware from '../project_setup/Middleware.mjs'
 
 const router = express.Router();
 
 // POST /signUp - Create a new user
-router.post('/signUp', UserController.createUser);
+router.post('/signUp', UserRegistrationController.createUser);
 
 // POST /signIn - Login user
-router.post('/signIn', UserController.signIn);
+router.post('/signIn', UserRegistrationController.signIn);
 
 // POST /forgetPassword
-router.post('/forgetPassword', UserController.forgetPassword);
+router.post('/forgetPassword', UserRegistrationController.forgetPassword);
 
 // POST /otp
-router.post('/otp', UserController.otp);
+router.post('/otp', UserRegistrationController.otp);
 
 // POST /forgetPassword
-router.post('/changePassword', UserController.changePassword);
+router.post('/changePassword', UserRegistrationController.changePassword);
 
 // POST /deductMoney -  Deducting amount from userWallet
 router.post('/deductAmountByUserId/:userId', Middleware.admin, UserController.deductAmountByUserId);

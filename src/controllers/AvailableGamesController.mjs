@@ -1,14 +1,15 @@
 // src/controllers/AvailableGamesController.mjs
 import AvailableGamesRepository from "../repositories/AvailableGamesRepository.mjs";
+import { ErrorHandler, ValidationError, NotFoundError } from '../controllers/ErrorHandler.mjs'
 
 class AvailableGamesController {
     static async createAvailableGame(req, res) {
         try {
-            const { availableGamesData } = await AvailableGamesController.availableGamesValidation(req);
+            const availableGamesData = await this.availableGamesValidation(req);
             const availableGames = await AvailableGamesRepository.createAvailableGames(availableGamesData);
             res.status(201).json({ status: 201, success: true, message: 'Available games created successfully', availableGames });
         } catch (error) {
-            AvailableGamesController.catchError(error, res);
+            ErrorHandler.catchError(error, res);
         }
     }
 
@@ -17,43 +18,42 @@ class AvailableGamesController {
             const { pageNumber = 1, perpage = 10 } = req.query;
             const options = { page: Number(pageNumber), limit: Number(perpage) };
             const availableGames = await AvailableGamesRepository.getAllAvailableGames(options, req);
-            if (availableGames.data.length === 0) { return res.status(404).json({ status: 404, success: false, message: 'No data found for the provided details.' }); }
             res.status(200).json({ status: 200, success: true, message: 'Available games fetched successfully', ...availableGames });
         } catch (error) {
-            AvailableGamesController.catchError(error, res);
+            ErrorHandler.catchError(error, res);
         }
     }
 
     static async getAvailableGamesById(req, res) {
         try {
             const { id } = req.params;
-            const availableGames = await AvailableGamesController.validateAndFetchAvailableGameById(id);
+            const availableGames = await this.validateAndFetchAvailableGameById(id);
             res.status(200).json({ status: 200, success: true, message: 'Available game fetched successfully', availableGames });
         } catch (error) {
-            AvailableGamesController.catchError(error, res);
+            ErrorHandler.catchError(error, res);
         }
     }
 
     static async updateAvailableGameById(req, res) {
         try {
             const { id } = req.params;
-            await AvailableGamesController.validateAndFetchAvailableGameById(id);
-            const { availableGamesData } = await AvailableGamesController.availableGamesValidation(req);
+            await this.validateAndFetchAvailableGameById(id);
+            const availableGamesData = await this.availableGamesValidation(req, true);
             const updatedAvailableGames = await AvailableGamesRepository.updateAvailableGamesById(id, availableGamesData);
             res.status(200).json({ status: 200, success: true, message: 'Available game updated successfully', updatedAvailableGames });
         } catch (error) {
-            AvailableGamesController.catchError(error, res);
+            ErrorHandler.catchError(error, res);
         }
     }
 
     static async deleteAvailableGameById(req, res) {
         try {
             const { id } = req.params;
-            const availableGames = await AvailableGamesController.validateAndFetchAvailableGameById(id);
+            const availableGames = await this.validateAndFetchAvailableGameById(id);
             const deletedAvailableGames = await AvailableGamesRepository.deleteAvailableGamesById(id, availableGames);
             res.status(200).json({ status: 200, success: true, message: 'Available game deleted successfully', deletedAvailableGames });
         } catch (error) {
-            AvailableGamesController.catchError(error, res);
+            ErrorHandler.catchError(error, res);
         }
     }
 
@@ -65,40 +65,33 @@ class AvailableGamesController {
         return availableGames;
     }
 
-    static async availableGamesValidation(req) {
-        const { name, status } = req.body;
-        const images = req.files;
+    static async availableGamesValidation(data, isUpdate = false) {
+        const { name, status } = data.body;
+        const images = data.files;
 
         const requiredFields = { name, status };
         const missingFields = Object.entries(requiredFields)
             .filter(([_, value]) => value === undefined || value === '')
             .map(([field]) => field.charAt(0).toUpperCase() + field.slice(1));
-        if (missingFields.length > 0) { throw new ValidationError(`Missing required fields: ${missingFields.join(', ')}`); }
+        if (missingFields.length > 0) { throw new NotFoundError(`Missing required fields: ${missingFields.join(', ')}`); }
 
+        if (typeof name !== 'string') { throw new ValidationError('Name must be a string'); }
+        if (typeof status !== 'string') { throw new ValidationError('Status must be a string'); }
+        
+        const validStatuses = ['Active', 'Deactive'];
+        if (!validStatuses.includes(status)) { throw new ValidationError(`Status must be one of: ${validStatuses.join(', ')} without any space`); } 
         if (images.length === 0 || images.length > 5) { throw new ValidationError('Atleast one image is required and maximum 5 images, key is images.'); }
 
-        const validStatuses = ['Active', 'Deactive'];
-        if (!validStatuses.includes(status)) { throw new ValidationError('Status must be one of: Active or Deactive'); }
-
         const imageFilenames = images.map(image => image.filename);
-        const availableGamesData = { name, status, images: imageFilenames };
-        availableGamesData.name = name.trim();
-        availableGamesData.status = status.trim();
-        return { availableGamesData } ;
-    }
+        const availableGamesData = { name: name.trim(), status, images: imageFilenames };
 
-    static async catchError(error, res) {
-        try {
-            if (error instanceof ValidationError) { res.status(400).json({ status: 400, success: false, message: error.message }); }
-            else if (error instanceof NotFoundError) { res.status(404).json({ status: 404, success: false, message: error.message }); }
-            else { res.status(500).json({ status: 500, success: false, message: 'Internal server error.' }); }
-        } catch (error) {
-            res.status(500).json({ status: 500, success: false, message: 'Something unexpected has happened' });
+        if (!isUpdate) {
+            const existingName = await AvailableGamesRepository.checkDuplicateGameName(availableGamesData.name);
+            if (existingName && existingName.status === 'Active') { throw new ValidationError('A game with Active status for this name already exists.'); }
         }
+        
+        return availableGamesData;
     }
 }
-
-class ValidationError extends Error { constructor(message) { super(message); this.name = 'ValidationError'; } }
-class NotFoundError extends Error { constructor(message) { super(message); this.name = 'NotFoundError'; } }
 
 export default AvailableGamesController;

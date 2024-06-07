@@ -11,6 +11,8 @@ class AvailableGamesRepository {
 
     static async getAvailableGamesById(id) { return await AvailableGames.findById(id); }
 
+    static async checkDuplicateGameName(name) { return await AvailableGames.findOne({ name: new RegExp(`^${name}`, 'i') }); }
+
     static async updateAvailableGamesById(id, availableGamesData) {
         const existingGame = await AvailableGames.findById(id);
         await Promise.all(existingGame.images.map(image =>

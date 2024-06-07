@@ -12,7 +12,7 @@ class UserRepository {
 
     static async deleteUserByUserId(userId) { return await User.findOneAndDelete({ userId }); }
 
-    static async getUserByEmail(email) { return await User.findOne({ email }); }
+    static async getUserByEmail(email) { return await User.findOne({ email: new RegExp(`^${email}`, 'i')}); }
 
     static async getUserByMobile(mobile) { return await User.findOne({ mobile }); }
 

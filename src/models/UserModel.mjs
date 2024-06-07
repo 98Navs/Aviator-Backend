@@ -1,16 +1,16 @@
-//src/models/UserModel.mjs
+// src/models/UserModel.mjs
 import { Schema, model } from 'mongoose';
 
 const userSchema = new Schema({
     userId: { type: Number, default: () => Math.floor(100000 + Math.random() * 900000), unique: true },
     userName: { type: String, required: true },
-    email: { type: String, required: true },
-    mobile: { type: Number, required: true },
+    email: { type: String, required: true, unique: true },
+    mobile: { type: Number, required: true, unique: true },
     password: { type: String, required: true },
-    role: { type: String, enum: { values: ['user', 'admin', 'affiliate'], message: 'Role must be one of: user, admin, or affiliate' }, default: 'user' },
+    role: { type: String, enum: ['user', 'admin', 'affiliate'], default: 'user' },
     image: { type: Buffer, default: Buffer.alloc(0) },
     depositAmount: { type: Number, default: 0 },
-    winningsAmount: { type: Number, default: 0},
+    winningsAmount: { type: Number, default: 0 },
     bonusAmount: { type: Number, default: 0 },
     commissionAmount: { type: Number, default: 0 },
     lifetimeDepositAmount: { type: Number, default: 0 },
@@ -18,40 +18,48 @@ const userSchema = new Schema({
     lifetimeNumberOfDeposit: { type: Number, default: 0 },
     lifetimeNumberOfWithdrawal: { type: Number, default: 0 },
     playedAmount: { type: Number, default: 0 },
-    commissionPercentage : {type: Number, default: 0},
-    playedGame: { type: String, default: 'none' },
+    commissionPercentage: { type: Number, default: 0 },
+    playedGame: { type: [String] },
     promoCode: { type: String, default: () => Math.random().toString(36).slice(2, 10).toUpperCase() },
-    referenceCode: { type: String, default: 'admin' },
-    weightage: { type: Number, default: 0 },
-    status: { type: String, default: 'active' },
+    referenceCode: { type: String },
+    lifetimeProfit: { type: Number, default: 0 },
+    lifetimeLoss: { type: Number, default: 0},
+    status: { type: String, default: 'Active' },
     otp: { type: Number, default: null },
-    bankDetails: [
-        {
-            type: Schema.Types.ObjectId,
-            ref: 'UserBankAccount'
-        }
-    ],
+    accessiableGames: { type: [String], default: ["Aviator", "Snakes"] },
+    numberOfGames: { type: Number, default: 0 },
+    numberOfReferals: { type: Number, default: 0 },
+    referralLink: { type: String, default: '' },
+    bankDetails: [{ type: Schema.Types.ObjectId, ref: 'UserBankAccount' }],
 }, {
-    timestamps: true
+    timestamps: true,
+    toJSON: {
+        virtuals: true,
+        transform: (doc, ret) => {
+            delete ret.password;
+            delete ret.image;
+            delete ret.otp;
+            ret.createdAt = ret.createdAt.toISOString();
+            ret.updatedAt = ret.updatedAt.toISOString();
+        }
+    }
 });
 
-// Define virtual wallet property
+userSchema.pre('save', function (next) {
+    if (this.isNew) {
+        this.referralLink = `https://aviator-backend-5cfe.vercel.app/users?referenceCode=${this.promoCode}`;
+    }
+    this.numberOfGames = this.accessiableGames.length;
+    next();
+});
+
 userSchema.virtual('wallet').get(function () {
     return this.depositAmount + this.winningsAmount + this.bonusAmount + this.commissionAmount;
 });
-
-// Define toJSON method to include virtuals
-userSchema.set('toJSON', {
-    virtuals: true,
-    transform: function (doc, ret) {
-        // Remove sensitive fields
-        delete ret.password;
-        delete ret.image;
-        delete ret.otp;
-        ret.createdAt = ret.createdAt.toISOString();
-        ret.updatedAt = ret.updatedAt.toISOString();
-    }
+userSchema.virtual('weightage').get(function () {
+    return ((this.lifetimeProfit - this.lifetimeLoss) / this.playedAmount) * 100;
 });
+
 
 const User = model('User', userSchema);
 
