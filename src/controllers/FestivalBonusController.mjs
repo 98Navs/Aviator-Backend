@@ -37,10 +37,12 @@ class FestivalBonusController {
         }
     }
 
-    static async getAllowedBonusTypes(req, res) {
+    static async getAllowedBonusAndStatusTypes(req, res) {
         try {
             const allowedBonusTypes = ['New User Bonus', 'Festival Bonus'];
-            res.status(200).json({ status: 200, success: true, message: 'Allowed bonus types fetched successfully', allowedBonusTypes });
+            const allowedStatusTypes = ['Active', 'Deactive'];
+            const data = { allowedBonusTypes, allowedStatusTypes };
+            res.status(200).json({ status: 200, success: true, message: 'Allowed bonus types and statuses fetched successfully', data });
         } catch (error) {
             ErrorHandler.catchError(error, res);
         }

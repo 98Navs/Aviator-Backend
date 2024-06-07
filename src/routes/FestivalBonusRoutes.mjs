@@ -11,7 +11,7 @@ router.post('/createFestivalBonus', FestivalBonusController.createFestivalBonus)
 router.get('/getAllFestivalBonus', FestivalBonusController.getAllFestivalBonuses);
 
 // GET /Route to get all allowed bonus types
-router.get('/getAllowedBonusTypes', FestivalBonusController.getAllowedBonusTypes);
+router.get('/getAllowedBonusAndStatusTypes', FestivalBonusController.getAllowedBonusAndStatusTypes);
 
 // GET /Route to get a specific festival bonus by its offer ID
 router.get('/getFestivalBonusByOfferId/:offerId', FestivalBonusController.getFestivalBonusByOfferId);
