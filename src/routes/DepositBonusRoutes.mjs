@@ -8,7 +8,7 @@ const router = express.Router();
 router.post('/createDepositBonus', DepositBonusController.createDepositBonus);
 
 // GET /Route to get all Deposit bonuses with pagination
-router.get('/getAllDepositBonus', DepositBonusController.getAllDepositBonuses);
+router.get('/getAllDepositBonuses', DepositBonusController.getAllDepositBonuses);
 
 // GET /Route to get a specific Deposit bonus by its offer ID
 router.get('/getDepositBonusByOfferId/:offerId', DepositBonusController.getDepositBonusByOfferId);

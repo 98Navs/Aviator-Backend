@@ -30,10 +30,14 @@ class DepositBonusRepository {
         if (filterParams.startDate || filterParams.endDate) {
             query.createdAt = {};
             if (filterParams.startDate) query.startDate.$gte = new Date(filterParams.startDate);
-            if (filterParams.endDate) query.endDate.$lte = new Date(filterParams.endDate);
+            if (filterParams.endDate) {
+                const endDate = new Date(filterParams.endDate);
+                endDate.setHours(23, 59, 59, 999);
+                query.createdAt.$lte = endDate;
+            }
         }
         return await paginate(DepositBonus, query, options.page, options.limit, req);
-    }
+    } 
 }
 
 export default DepositBonusRepository;

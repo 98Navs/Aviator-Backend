@@ -7,14 +7,14 @@ const router = express.Router();
 // POST /Route to create a new Betting
 router.post('/createBetting', BettingController.createBetting);
 
+// GET /Route to get a disribution wallet details
+router.post('/getDistributionWalletDetails', BettingController.getDistributionWalletDetails);
+
 // GET /Route to get all Betting with pagination
 router.get('/getAllBetting', BettingController.getAllBetting);
 
 // GET /Route to get a latest Betting by its betting ID
 router.get('/getDetailsForLatestBettingId', BettingController.getDetailsForLatestBettingId);
-
-// GET /Route to get a latest Betting by its betting ID
-router.post('/getDistributionWalletDetails', BettingController.getDistributionWalletDetails);
 
 // PUT /Route to update a specific Betting by its ID
 router.put('/updateBettingById/:id', BettingController.updateBettingById);

@@ -9,27 +9,40 @@ class AvailableGamesRepository {
 
     static async getAllAvailableGames(options, req) { return await paginate(AvailableGames, {}, options.page, options.limit, req); }
 
-    static async getAvailableGamesById(id) { return await AvailableGames.findById(id); }
+    static async getAvailableGamesByGameId(gameId) { return await AvailableGames.findOne({ gameId }); }
 
     static async checkDuplicateGameName(name) { return await AvailableGames.findOne({ name: new RegExp(`^${name}`, 'i') }); }
 
-    static async updateAvailableGamesById(id, availableGamesData) {
-        const existingGame = await AvailableGames.findById(id);
+    static async updateAvailableGamesByGameId(gameId, availableGamesData) {
+        const existingGame = await AvailableGames.findOne({ gameId });
         await Promise.all(existingGame.images.map(image =>
             fs.promises.unlink(path.join('src/public/uploads', image)).catch(err => {
                 if (err.code !== 'ENOENT') throw err;
             })
         ));
-        return await AvailableGames.findByIdAndUpdate(id, availableGamesData, { new: true });
+        return await AvailableGames.findOneAndUpdate({ gameId }, availableGamesData, { new: true });
     }
-    
-    static async deleteAvailableGamesById(id, availableGames) {
+
+    static async deleteAvailableGamesByGameId(gameId, availableGames) {
         await Promise.all(availableGames.images.map(image =>
             fs.promises.unlink(path.join('src/public/uploads', image)).catch(err => {
                 if (err.code !== 'ENOENT') throw err;
             })
         ));
-        return await AvailableGames.findByIdAndDelete(id);
+        return await AvailableGames.findOneAndDelete({ gameId });
+    }
+
+    static async filterAvailableGames(filterParams, options, req) {
+        const query = {};
+
+        if (filterParams.search) {
+            const searchRegex = new RegExp(`^${filterParams.search}`, 'i');
+            query.$or = [
+                { $expr: { $regexMatch: { input: { $toString: "$gameId" }, regex: searchRegex } } },
+                { name: searchRegex }
+            ];
+        }
+        return await paginate(AvailableGames, query, options.page, options.limit, req);
     }
 }
 

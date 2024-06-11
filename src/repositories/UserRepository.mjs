@@ -1,5 +1,4 @@
 // src/repositories/UserRepository.mjs
-import bcrypt from 'bcrypt';
 import User from '../models/UserModel.mjs';
 import { paginate } from '../project_setup/Utils.mjs';
 
@@ -36,14 +35,13 @@ class UserRepository {
         if (filterParams.startDate || filterParams.endDate) {
             query.createdAt = {};
             if (filterParams.startDate) query.createdAt.$gte = new Date(filterParams.startDate);
-            if (filterParams.endDate) query.createdAt.$lte = new Date(filterParams.endDate);
+            if (filterParams.endDate) {
+                const endDate = new Date(filterParams.endDate);
+                endDate.setHours(23, 59, 59, 999);
+                query.createdAt.$lte = endDate;
+            }
         }
         return await paginate(User, query, options.page, options.limit, req);
-    }
-
-    static async hashPassword(password) {
-        const saltRounds = 10;
-        return await bcrypt.hash(password, saltRounds);
     }
 }
 

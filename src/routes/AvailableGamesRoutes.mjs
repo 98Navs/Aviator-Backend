@@ -12,12 +12,15 @@ router.post('/createAvailableGame', uploadImages.array('images', 9999999999), Av
 router.get('/getAllAvailableGames', AvailableGamesController.getAllAvailableGames);
 
 // GET /Route to get a specific Available Game by its ID
-router.get('/getAvailableGamesById/:id', AvailableGamesController.getAvailableGamesById);
+router.get('/getAvailableGamesByGameId/:gameId', AvailableGamesController.getAvailableGamesByGameId);
+
+// GET /Route to get all allowed status types
+router.get('/getAllowedStatusTypes', AvailableGamesController.getAllowedStatusTypes);
 
 // PUT /Route to update a specific Available Game by its ID
-router.put('/updateAvailableGameById/:id', uploadImages.array('images', 9999999999), AvailableGamesController.updateAvailableGameById);
+router.put('/updateAvailableGameByGameId/:gameId', uploadImages.array('images', 9999999999), AvailableGamesController.updateAvailableGameByGameId);
 
 // DELETE /Route to delete a specific Available Game by its ID
-router.delete('/deleteAvailableGameById/:id', AvailableGamesController.deleteAvailableGameById);
+router.delete('/deleteAvailableGameByGameId/:gameId', AvailableGamesController.deleteAvailableGameByGameId);
 
 export default router;

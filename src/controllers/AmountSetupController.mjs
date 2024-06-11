@@ -1,6 +1,6 @@
 // src/controllers/AmountSetupController.mjs
 import AmountSetupRepository from '../repositories/AmountSetupRepository.mjs';
-import { ErrorHandler, ValidationError, NotFoundError } from '../controllers/ErrorHandler.mjs'
+import { CommonHandler, ValidationError, NotFoundError } from './CommonHandler.mjs'
 
 class AmountSetupController {
     static async createAmountSetup(req, res) {
@@ -9,7 +9,7 @@ class AmountSetupController {
             const amountSetup = await AmountSetupRepository.createAmountSetup(amountSetupData);
             res.status(201).json({ status: 201, success: true, message: 'Amount Setup created successfully', amountSetup });
         } catch (error) {
-            ErrorHandler.catchError(error, res);
+            CommonHandler.catchError(error, res);
         }
     }
 
@@ -23,7 +23,7 @@ class AmountSetupController {
                 await AmountSetupRepository.getAllAmountSetup(options, req);
             return res.status(200).json({ status: 200, success: true, message: 'All amount setup fetched successfully', ...amountSetup });
         } catch (error) {
-            ErrorHandler.catchError(error, res);
+            CommonHandler.catchError(error, res);
         }
     }
 
@@ -33,7 +33,7 @@ class AmountSetupController {
             const amountSetup = await AmountSetupController.validateAndFetchAmountSetupById(id);
             res.status(200).json({ status: 200, success: true, message: 'Amount setup fetched successfully', amountSetup });
         } catch (error) {
-            ErrorHandler.catchError(error, res);
+            CommonHandler.catchError(error, res);
         }
     }
 
@@ -45,7 +45,7 @@ class AmountSetupController {
             const amountSetup = await AmountSetupRepository.updateAmountSetupById(id, amountSetupData);
             res.status(200).json({ status: 200, success: true, message: 'Amount setup updated successfully', amountSetup });
         } catch (error) {
-            ErrorHandler.catchError(error, res);
+            CommonHandler.catchError(error, res);
         }
     }
 
@@ -56,7 +56,7 @@ class AmountSetupController {
             const amountSetup = await AmountSetupRepository.deleteAmountSetupById(id);
             res.status(200).json({ status: 200, success: true, message: 'Amount setup deleted successfully', amountSetup });
         } catch (error) {
-            ErrorHandler.catchError(error, res);
+            CommonHandler.catchError(error, res);
         }
     }
 
@@ -70,11 +70,7 @@ class AmountSetupController {
 
     static async amountSetupValidation(data, isUpdate = false) {
         const { settingName, value } = data;
-        const requiredFields = { settingName, value };
-        const missingFields = Object.entries(requiredFields)
-            .filter(([_, value]) => value === undefined || value === '')
-            .map(([field]) => field.charAt(0).toUpperCase() + field.slice(1));
-        if (missingFields.length > 0) { throw new NotFoundError(`Missing required fields: ${missingFields.join(', ')}`); }
+        await CommonHandler.validateRequiredFields({ settingName, value });
         
         if (typeof settingName !== 'string') { throw new ValidationError('SettingName must be a string'); }
         if (typeof value !== 'string') { throw new ValidationError('Value must be a string'); }
@@ -85,6 +81,7 @@ class AmountSetupController {
             const existingName = await AmountSetupRepository.checkDuplicateSettingName(data.settingName);
             if (existingName) { throw new ValidationError('A setting with same name already exists.'); }
         }
+        
         return data;
     }
 }

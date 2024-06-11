@@ -6,37 +6,40 @@ import Middleware from '../project_setup/Middleware.mjs'
 
 const router = express.Router();
 
-// POST /signUp - Create a new user
-router.post('/signUp', UserRegistrationController.createUser);
+// POST /Route to create a new user
+router.post('/createUser', UserRegistrationController.createUser);
 
-// POST /signIn - Login user
+// POST /Route for user to signIn
 router.post('/signIn', UserRegistrationController.signIn);
 
-// POST /forgetPassword
+// POST /Route for user to apply for forgetPassword
 router.post('/forgetPassword', UserRegistrationController.forgetPassword);
 
-// POST /otp
+// POST /Route for user confirm otp
 router.post('/otp', UserRegistrationController.otp);
 
-// POST /forgetPassword
+// POST /Route for user to changePassword
 router.post('/changePassword', UserRegistrationController.changePassword);
 
-// POST /deductMoney -  Deducting amount from userWallet
+// POST /Route for admin to deductMoney from userWallet
 router.post('/deductAmountByUserId/:userId', Middleware.admin, UserController.deductAmountByUserId);
 
-// GET /users - Get all users
-router.get('/users', Middleware.admin, UserController.getAllUsers);
+// GET /Route to get all users
+router.get('/getAllUsers', Middleware.admin, UserController.getAllUsers);
 
-// GET /users/:userId - Get a user by userId
-router.get('/users/:userId', Middleware.admin, UserController.getUserByUserId);
+// GET /Route to get a user by userId
+router.get('/getUserByUserId/:userId', Middleware.admin, UserController.getUserByUserId);
 
-// GET /wallet/:userId - Get a user wallet details by userId
-router.get('/wallet/:userId', Middleware.admin, UserController.getWalletByUserId);
+// GET /Route to get allowed roles and status types
+router.get('/getAllowedRolesAndStatusTypes', Middleware.admin, UserController.getAllowedRolesAndStatusTypes);
 
-// PUT /users/:userId - Update a user by userId
-router.put('/users/:userId', Middleware.admin, UserController.updateUserByUserId);
+// GET /Route to get wallet details by userID
+router.get('/getWalletByUserId/:userId', Middleware.admin, UserController.getWalletByUserId);
 
-// DELETE /users/:userId - Delete a user by userId
-router.delete('/users/:userId', Middleware.admin, UserController.deleteUserByUserId);
+// PUT /Route to update a user by userId
+router.put('/updateUserByUserId/:userId', Middleware.admin, UserController.updateUserByUserId);
+
+// DELETE /Route to delete a user by userId
+router.delete('/updateUserByUserId/:userId', Middleware.admin, UserController.updateUserByUserId);
 
 export default router;

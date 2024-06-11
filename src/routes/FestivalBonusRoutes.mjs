@@ -8,13 +8,13 @@ const router = express.Router();
 router.post('/createFestivalBonus', FestivalBonusController.createFestivalBonus);
 
 // GET /Route to get all festival bonuses with pagination
-router.get('/getAllFestivalBonus', FestivalBonusController.getAllFestivalBonuses);
-
-// GET /Route to get all allowed bonus types
-router.get('/getAllowedBonusAndStatusTypes', FestivalBonusController.getAllowedBonusAndStatusTypes);
+router.get('/getAllFestivalBonuses', FestivalBonusController.getAllFestivalBonuses);
 
 // GET /Route to get a specific festival bonus by its offer ID
 router.get('/getFestivalBonusByOfferId/:offerId', FestivalBonusController.getFestivalBonusByOfferId);
+
+// GET /Route to get all allowed bonus and status types
+router.get('/getAllowedBonusAndStatusTypes', FestivalBonusController.getAllowedBonusAndStatusTypes);
 
 // PUT /Route to update a specific festival bonus by its offer ID
 router.put('/updateFestivalBonusByOfferId/:offerId', FestivalBonusController.updateFestivalBonusByOfferId);

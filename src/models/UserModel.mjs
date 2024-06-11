@@ -8,8 +8,9 @@ const userSchema = new Schema({
     email: { type: String, required: true, unique: true },
     mobile: { type: Number, required: true, unique: true },
     password: { type: String, required: true },
-    role: { type: String, enum: ['user', 'admin', 'affiliate'], default: 'user' },
+    role: { type: String, default: 'user' },
     commissionPercentage: { type: Number, default: 0 },
+    
     playedAmount: { type: Number, default: 0 },
     playedGame: { type: [String] },
     lifetimeProfit: { type: Number, default: 0 },
@@ -25,7 +26,7 @@ const userSchema = new Schema({
     lifetimeNumberOfWithdrawal: { type: Number, default: 0 },
     
     promoCode: { type: String, default: () => Math.random().toString(36).slice(2, 10).toUpperCase() },
-    referenceCode: { type: String },
+    referenceCode: { type: String, default: 'ADMIN0001' },
     status: { type: String, default: 'Active' },
     otp: { type: Number, default: null },
     accessiableGames: { type: [String], default: ["Aviator", "Snakes"] },
@@ -59,7 +60,7 @@ userSchema.virtual('wallet').get(function () {
     return this.depositAmount + this.winningsAmount + this.bonusAmount + this.commissionAmount;
 });
 userSchema.virtual('weightage').get(function () {
-    return (this.playedAmount - (this.lifetimeProfit + this.lifetimeLoss) / this.playedAmount) * 100;
+    return ((this.lifetimeProfit - this.lifetimeLoss) / this.playedAmount) * 100;
 });
 
 

@@ -2,14 +2,14 @@
 import { Schema, model } from 'mongoose';
 
 const BettingSchema = new Schema({
-    gameId: { type: String, required: true },
+    gameId: { type: Number, required: true },
     bettingId: { type: Number, required: true },
     userId: { type: Number, required: true },
     userName: { type: String, required: true },
     amount: { type: Number, required: true },
     winAmount: { type: Number, default: 0 },
     weightage: { type: Number, default: 0 },
-    status: { type: String, enum: { values: ['BetApplied', 'BetCancelled', 'BetWon'], message: 'Bet Status must be one of: BetApplied, BetCancelled, or BetWon' } }
+    status: { type: String }
 }, { timestamps: true });
 
 BettingSchema.set('toJSON', {

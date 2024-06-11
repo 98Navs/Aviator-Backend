@@ -3,7 +3,7 @@ import bcrypt from 'bcrypt';
 import UserRepository from '../repositories/UserRepository.mjs';
 import AmountSetupRepository from '../repositories/AmountSetupRepository.mjs';
 import { GenerateSignature, sendEmail } from '../project_setup/Utils.mjs';
-import { ErrorHandler, ValidationError, NotFoundError } from './ErrorHandler.mjs';
+import { CommonHandler, ValidationError, NotFoundError } from './CommonHandler.mjs';
 
 class UserRegistrationController {
     static async createUser(req, res) {
@@ -12,30 +12,31 @@ class UserRegistrationController {
             const user = await UserRepository.createUser(userData);
             res.status(201).json({ status: 201, success: true, message: 'User created successfully', user });
         } catch (error) {
-            ErrorHandler.catchError(error, res);
+            CommonHandler.catchError(error, res);
         }
     }
 
     static async signIn(req, res) {
         try {
             const { user, password } = req.body;
-            UserRegistrationController.validatePresence({ user, password });
-            const existingUser = await UserRegistrationController.getUser(user);
-            if (existingUser.status != 'Active') { throw new ValidationError('User account has been suspended'); }
+            await CommonHandler.validateRequiredFields({ user, password });
+            const existingUser = await UserRegistrationController.getUser(user.trim());
+            if (!existingUser) { throw new NotFoundError("user not found for the provided details"); }
+            if (existingUser.status != 'Active') { throw new ValidationError('User account has been deleted or suspended'); }
             if (!bcrypt.compare(password, existingUser.password)) { throw new ValidationError('Invalid credentials.'); }
             const token = await GenerateSignature({ userId: existingUser.userId, email: existingUser.email, objectId: existingUser._id, role: existingUser.role, accessiableGames: existingUser.accessiableGames }, res);
             res.status(200).json({ status: 200, success: true, message: 'Sign in successful!', user: { userId: existingUser.userId, email: existingUser.email, token } });
         } catch (error) {
-            ErrorHandler.catchError(error, res);
+            CommonHandler.catchError(error, res);
         }
     }
 
     static async forgetPassword(req, res) {
         try {
             const { email } = req.body;
-            UserRegistrationController.validatePresence({ email });
-            UserRegistrationController.validateEmailFormat(email);
-            const user = await UserRepository.getUserByEmail(email);
+            await CommonHandler.validateRequiredFields({ email });
+            await CommonHandler.validateEmailFormat(email.trim());
+            const user = await UserRepository.getUserByEmail(email.trim());
             if (!user) throw new NotFoundError('User not found.');
             const otp = Math.floor(100000 + Math.random() * 900000);
             user.otp = otp;
@@ -43,36 +44,36 @@ class UserRegistrationController {
             await sendEmail(email, 'Password Reset OTP', `Your OTP for password reset is: ${otp}`);
             res.status(200).json({ status: 200, success: true, message: 'OTP sent to your email.' });
         } catch (error) {
-            ErrorHandler.catchError(error, res);
+            CommonHandler.catchError(error, res);
         }
     }
 
     static async otp(req, res) {
         try {
             const { email, otp } = req.body;
-            UserRegistrationController.validatePresence({ email, otp });
-            const user = await UserRepository.getUserByEmail(email);
+            await CommonHandler.validateRequiredFields({ email, otp });
+            const user = await UserRepository.getUserByEmail(email.trim());
             if (otp !== user.otp) throw new ValidationError('Invalid OTP.');
             user.otp = null;
             await user.save();
             res.status(200).json({ status: 200, success: true, message: 'OTP verified successfully.' });
         } catch (error) {
-            ErrorHandler.catchError(error, res);
+            CommonHandler.catchError(error, res);
         }
     }
 
     static async changePassword(req, res) {
         try {
             const { email, password } = req.body;
-            UserRegistrationController.validatePresence({ email, password });
-            UserRegistrationController.validatePasswordFormat(password);
-            const user = await UserRepository.getUserByEmail(email);
+            await CommonHandler.validateRequiredFields({ email, password });
+            await CommonHandler.validatePasswordFormat(password);
+            const user = await UserRepository.getUserByEmail(email.trim());
             if (!user) throw new NotFoundError('User not found.');
-            user.password = await UserRepository.hashPassword(password);
+            user.password = await CommonHandler.hashPassword(password);
             await user.save();
             res.status(200).json({ status: 200, success: true, message: 'Password reset successfully.' });
         } catch (error) {
-            ErrorHandler.catchError(error, res);
+            CommonHandler.catchError(error, res);
         }
     }
 
@@ -87,46 +88,25 @@ class UserRegistrationController {
 
     static async validateUserData(data, isUpdate = false) {
         const { userName, email, mobile, password, referenceCode, role, status } = data;
-        if (!isUpdate) { UserRegistrationController.validatePresence({ userName, email, mobile, password }); }
-        if (isUpdate) { UserRegistrationController.validatePresence({ userName, email, mobile, role, status }); }
-        UserRegistrationController.validateUserNameFormat(userName);
-        UserRegistrationController.validateEmailFormat(email);
-        UserRegistrationController.validateMobileFormat(mobile);
-        UserRegistrationController.validatePasswordFormat(password);
 
-        if (role) UserRegistrationController.validateRole(role);
-        if (status) UserRegistrationController.validateStatus(status);
-
-        data.userName = userName.trim();
-        data.email = email.trim();
-
+        if (!isUpdate) { await CommonHandler.validateRequiredFields({ userName, email, mobile, password }); }
+        if (userName) { await CommonHandler.validateUserNameFormat(userName); }
+        if (email) { await CommonHandler.validateEmailFormat(email); }
+        if (mobile) { await CommonHandler.validateMobileFormat(mobile); }
+        if (password) { await CommonHandler.validatePasswordFormat(password); }
+        if (role) { await CommonHandler.validateRole(role); }
+        if (status) { await CommonHandler.validateStatus(status); }
+        if (!isUpdate) { 
+            data.userName = userName.trim();
+            data.email = email.trim();
+        }
         if (!isUpdate) {
             await UserRegistrationController.checkExistingUser(data.email, mobile);
-            data.password = await UserRepository.hashPassword(password);
+            data.password = await CommonHandler.hashPassword(password);
             data.bonusAmount = await UserRegistrationController.getInitialBonus();
             data = await UserRegistrationController.handleReferral(data, referenceCode);
         }
         return data;
-    }
-
-    static validatePresence(fields) { for (const [key, value] of Object.entries(fields)) { if (!value) throw new ValidationError(`Please provide ${key}.`); } }
-
-    static validateEmailFormat(email) { if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { throw new ValidationError('Invalid email format.'); } }
-
-    static validatePasswordFormat(password) { if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,}$/.test(password)) { throw new ValidationError('Password must contain at least 8 characters, including uppercase, lowercase, numbers, and special characters.'); } }
-
-    static validateUserNameFormat(userName) { if (!/^[a-zA-Z ]{4,}$/.test(userName)) { throw new ValidationError('Invalid userName. Must be at least 4 characters and only letters.'); } }
-
-    static validateMobileFormat(mobile) { if (!/^\d{10}$/.test(mobile)) { throw new ValidationError('Invalid mobile number. Must be 10 digits.'); } }
-
-    static validateRole(role) {
-        const validRoles = ['admin', 'user', 'affiliate'];
-        if (!validRoles.includes(role)) { throw new ValidationError(`Role must be one of: ${validRoles.join(', ')} without any space.`); }
-    }
-
-    static validateStatus(status) {
-        const validStatus = ['Active', 'Deactive', 'Suspended'];
-        if (!validStatus.includes(status)) { throw new ValidationError(`Status must be one of: ${validStatus.join(', ')} without any space.`); }
     }
 
     static async checkExistingUser(email, mobile) {
@@ -152,9 +132,11 @@ class UserRegistrationController {
 
     static async assignAdminReferral(data) {
         const admin = await UserRepository.getUserByEmail('admin@scriza.in');
-        data.referenceCode = admin.promoCode;
-        admin.numberOfReferals += 1;
-        await admin.save();
+        if (admin) {
+            data.referenceCode = admin.promoCode;
+            admin.numberOfReferals += 1;
+            await admin.save();
+        }
         return data;
     }
 

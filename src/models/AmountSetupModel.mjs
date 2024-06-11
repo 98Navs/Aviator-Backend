@@ -3,7 +3,7 @@ import { Schema, model } from 'mongoose';
 
 const AmountSetupSchema = new Schema({
     settingName: { type: String, required: true },
-    value: { type: String, required: true },
+    value: { type: String, default: "0", required: true },
 }, { timestamps: true });
 
 AmountSetupSchema.set('toJSON', {

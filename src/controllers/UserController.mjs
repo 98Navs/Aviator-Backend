@@ -1,6 +1,6 @@
 //src/controllers/UserController.mjs
 import UserRepository from '../repositories/UserRepository.mjs';
-import { ErrorHandler, ValidationError, NotFoundError } from '../controllers/ErrorHandler.mjs'
+import { CommonHandler, ValidationError, NotFoundError } from './CommonHandler.mjs'
 import UserRegistrationController from './UserRegistrationController.mjs';
 
 class UserController {
@@ -14,7 +14,7 @@ class UserController {
                 await UserRepository.getAllUsers(options, req);
             return res.status(200).json({ status: 200, success: true, message: 'Users fetched successfully', ...users });
         } catch (error) {
-            ErrorHandler.catchError(error, res);
+            CommonHandler.catchError(error, res);
         }
     }
 
@@ -24,7 +24,18 @@ class UserController {
             const user = await UserController.validateAndFetchUserByUserId(userId);
             res.status(200).json({ status: 200, success: true, message: `Data fetched successfully for userId ${userId}`, user });
         } catch (error) {
-            ErrorHandler.catchError(error, res);
+            CommonHandler.catchError(error, res);
+        }
+    }
+
+    static async getAllowedRolesAndStatusTypes(req, res) {
+        try {
+            const allowedRolesTypes = CommonHandler.validUserRoles;
+            const allowedStatusTypes = CommonHandler.validUserStatuses;
+            const data = { allowedRolesTypes, allowedStatusTypes };
+            res.status(200).json({ status: 200, success: true, message: 'Allowed roles and statuses types fetched successfully', data });
+        } catch (error) {
+            CommonHandler.catchError(error, res);
         }
     }
 
@@ -35,7 +46,7 @@ class UserController {
             const data = { wallet: user.wallet, depositAmount: user.depositAmount, bonusAmount: user.bonusAmount, commissionAmount: user.commissionAmount, winningsAmount: user.winningsAmount };
             res.status(200).json({ status: 200, success: true, message: `Wallet data fetched successfully for userId ${userId}`, data });
         } catch (error) {
-            ErrorHandler.catchError(error, res);
+            CommonHandler.catchError(error, res);
         }
     }
 
@@ -47,7 +58,7 @@ class UserController {
             const updatedUser = await UserRepository.updateUserByUserId(userId, userData);
             res.status(200).json({ status: 200, success: true, message: `Data updated successfully for userId ${userId}`, updatedUser });
         } catch (error) {
-            ErrorHandler.catchError(error, res);
+            CommonHandler.catchError(error, res);
         }
     }
 
@@ -58,7 +69,7 @@ class UserController {
             const deleteUser = await UserRepository.deleteUserByUserId(userId);
             res.status(200).json({ status: 200, success: true, message: `Data deleted successfully for userId ${userId}`, deleteUser });
         } catch (error) {
-            ErrorHandler.catchError(error, res);
+            CommonHandler.catchError(error, res);
         }
     }
 
@@ -89,7 +100,7 @@ class UserController {
             const availableFunds = amounts.reduce((acc, fund) => ({ ...acc, [fund.name]: user[fund.name] }), {});
             res.status(200).json({ status: 200, success: true, message: `Deducted depositAmount: ${depositAmount}, winningsAmount: ${winningsAmount}, bonusAmount: ${bonusAmount}, commissionAmount: ${commissionAmount} from userId ${userId} and transferred to admin.`, availableFunds });
         } catch (error) {
-            ErrorHandler.catchError(error, res);
+            CommonHandler.catchError(error, res);
         }
     }
 
