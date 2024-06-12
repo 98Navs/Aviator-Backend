@@ -95,8 +95,8 @@ class BettingController {
     static async bettingValidation(data) {
 
         const { gameId, bettingId, userId, amount, winAmount, status } = data;
-        await CommonHandler.validateRequiredFields({ gameId, bettingId, userId, amount, status });
-        await BettingController.validateFieldTypes({ gameId, bettingId, userId, amount, status });
+        await CommonHandler.validateRequiredFields({ gameId, bettingId, userId, amount, winAmount, status });
+        await BettingController.validateFieldTypes({ gameId, bettingId, userId, amount, winAmount, status });
 
         const [minAmount, maxAmount] = await BettingController.getBettingLimits();
         await BettingController.validateBettingAmount(amount, minAmount, maxAmount);
@@ -165,11 +165,12 @@ class BettingController {
         if (remainingAmount > 0) { throw new ValidationError(`User with userId ${user.userId} does not have the available amount: ${totalAvailable} (required: ${amount}).`); }
     }
 
-    static async validateFieldTypes({ gameId, bettingId, userId, amount, status }) {
+    static async validateFieldTypes({ gameId, bettingId, userId, amount, winAmount, status }) {
         if (!/^\d{6}$/.test(gameId)) { throw new ValidationError('GameId must be a number of 6 digits'); }
         if (!/^\d{6}$/.test(bettingId)) { throw new ValidationError('BettingId must be a number of 6 digits'); }
         if (!/^\d{6}$/.test(userId)) { throw new ValidationError('UserId must be a number of 6 digits'); }
         if (typeof amount !== 'number') { throw new ValidationError('Amount must be a number'); }
+        if (typeof winAmount !== 'number') { throw new ValidationError('WinAmount must be a number'); }
         if (typeof status !== 'string') { throw new ValidationError('Status must be a string'); }
     }
 

@@ -91,15 +91,14 @@ class UserRegistrationController {
 
         if (!isUpdate) { await CommonHandler.validateRequiredFields({ userName, email, mobile, password }); }
         if (userName) { await CommonHandler.validateUserNameFormat(userName); }
+        if (userName) { data.userName = userName.trim(); }
         if (email) { await CommonHandler.validateEmailFormat(email); }
+        if (email) { data.email = email.trim(); }
         if (mobile) { await CommonHandler.validateMobileFormat(mobile); }
         if (password) { await CommonHandler.validatePasswordFormat(password); }
         if (role) { await CommonHandler.validateRole(role); }
         if (status) { await CommonHandler.validateStatus(status); }
-        if (!isUpdate) { 
-            data.userName = userName.trim();
-            data.email = email.trim();
-        }
+
         if (!isUpdate) {
             await UserRegistrationController.checkExistingUser(data.email, mobile);
             data.password = await CommonHandler.hashPassword(password);

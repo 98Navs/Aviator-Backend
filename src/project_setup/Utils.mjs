@@ -3,7 +3,15 @@ import jwt from 'jsonwebtoken';
 import nodemailer from 'nodemailer';
 import multer from 'multer';
 import url from 'url';
+import Redis from 'ioredis';
 
+// Redis caching implementation
+const redis = new Redis({ host: 'localhost', port: 6379, retryStrategy: times => Math.min(times * 50, 2000) });
+redis.on('error', err => console.error('Redis error:', err));
+redis.on('connect', () => console.log('Connected to Redis server.'));
+export { redis };
+
+// Role verification middleware
 const validateRole = async (req, roles) => {
     try {
         const signature = req.headers.authorization?.split(" ")[1] || req.cookies.jwt;
@@ -24,8 +32,8 @@ export const ValidateAdminSignature = (req) => validateRole(req, ['admin']);
 export const ValidateAffiliateSignature = (req) => validateRole(req, ['affiliate', 'admin']);
 export const ValidateUserSignature = (req) => validateRole(req, ['user', 'admin']);
 
+//Images uploader
 const FILE_TYPE_MAP = { 'image/png': 'png', 'image/jpeg': 'jpeg', 'image/jpg': 'jpg' };
-
 const storage = multer.diskStorage({
     destination: (req, file, cb) => { cb(FILE_TYPE_MAP[file.mimetype] ? null : new Error('Invalid image type'), 'src/public/uploads'); },
     filename: (req, file, cb) => {
@@ -36,6 +44,7 @@ const storage = multer.diskStorage({
 });
 export const uploadImages = multer({ storage });
 
+//Pagination
 export const generatePaginationUrls = (req, page, totalPages, limit) => {
     const baseUrl = url.format({ protocol: req.protocol, host: req.get('host'), pathname: req.originalUrl.split('?')[0] });
     return {
@@ -52,6 +61,7 @@ export const paginate = async (model, query, page, limit, req) => {
     return { data, total: totalDocuments, pageNumber: page, nextPageUrl, page, pages, perpage: limit };
 };
 
+//Generate JWT token generation 
 export const GenerateSignature = async (payload, res) => {
     try {
         const token = jwt.sign(payload, process.env.APP_SECRET, { expiresIn: '30d' });
@@ -63,6 +73,7 @@ export const GenerateSignature = async (payload, res) => {
     }
 };
 
+//Email handler
 const transporter = nodemailer.createTransport({
     host: "sandbox.smtp.mailtrap.io",
     port: 2525,
