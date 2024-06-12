@@ -3,13 +3,13 @@ import jwt from 'jsonwebtoken';
 import nodemailer from 'nodemailer';
 import multer from 'multer';
 import url from 'url';
-import Redis from 'ioredis';
+// import Redis from 'ioredis';
 
-// Redis caching implementation
-const redis = new Redis({ host: 'localhost', port: 6379, retryStrategy: times => Math.min(times * 50, 2000) });
-redis.on('error', err => console.error('Redis error:', err));
-redis.on('connect', () => console.log('Connected to Redis server.'));
-export { redis };
+// // Redis caching implementation
+// const redis = new Redis({ host: 'localhost', port: 6379, retryStrategy: times => Math.min(times * 50, 2000) });
+// redis.on('error', err => console.error('Redis error:', err));
+// redis.on('connect', () => console.log('Connected to Redis server.'));
+// export { redis };
 
 // Role verification middleware
 const validateRole = async (req, roles) => {
