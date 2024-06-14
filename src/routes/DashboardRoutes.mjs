@@ -6,4 +6,8 @@ const router = express.Router();
 // GET /Route to fetch dashboard stats 
 router.get('/getDashboardStats', DashboardController.getDashboardStats);
 
+// GET /Route to fetch dashboard betting graph 
+router.get('/getGraphStats', DashboardController.getGraphStats);
+
+
 export default router;   

@@ -40,6 +40,16 @@ class BettingRepository {
         return data;
     }
 
+    static async getGraphStats(startDate, endDate) {
+        const matchStage = { createdAt: { $gte: new Date(new Date(startDate).setHours(0, 0, 0, 0)), $lte: new Date(new Date(endDate).setHours(23, 59, 59, 999)) } };
+        const aggregateStats = (format) => { return Betting.aggregate([ { $match: matchStage }, { $group: { _id: { $dateToString: { format, date: '$createdAt' } }, totalAmount: { $sum: '$amount' }, totalWinAmount: { $sum: '$winAmount' }, totalProfit: { $sum: { $subtract: ['$amount', '$winAmount'] } } } }, { $sort: { _id: 1 } } ]); };
+        const dailyStats = aggregateStats('%Y-%m-%d');
+        const weeklyStats = aggregateStats('%Y-%U');
+        const monthlyStats = aggregateStats('%Y-%m');
+        const yearlyStats = aggregateStats('%Y');
+        return Promise.all([dailyStats, weeklyStats, monthlyStats, yearlyStats]);
+    }
+
     static async updateBettingById(id, bettingData) {
         const betting = await Betting.findById(id);
         Object.assign(betting, bettingData);
