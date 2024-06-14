@@ -61,6 +61,18 @@ class BettingController {
         }
     }
 
+    static async getBettingsStats(req, res) {
+        try {
+            const { gameName } = req.query;
+            const gameData = await AvailableGamesRepository.getAvailableGamesByGameName(gameName);
+            const gameId = gameData ? Number(gameData.gameId) : null;
+            const data = await BettingRepository.getBettingsStats(gameId);
+            res.status(200).json({ status: 200, success: true, message: 'Total stats fetched successfully', data });
+        } catch (error) {
+            CommonHandler.catchError(error, res);
+        }
+    }
+
     static async updateBettingById(req, res) {
         try {
             const { id } = req.params;
@@ -108,10 +120,11 @@ class BettingController {
         const referenceUser = await UserRepository.getUserByPromoCode(user.referenceCode);
         await BettingController.processBettingStatus(user, referenceUser, amount, winAmount, status, data);
         const gameDetails = await AvailableGamesRepository.getAvailableGamesByGameId(gameId)
+        if(!gameDetails){throw new NotFoundError(`Game with this gameId: ${gameId} not found`)}
         if (!user.playedGame.includes(gameDetails.name)) { user.playedGame.push(gameDetails.name); }
         
         await user.save();
-        
+
         return data;
     }
 

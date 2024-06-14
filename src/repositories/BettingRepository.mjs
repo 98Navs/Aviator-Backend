@@ -10,17 +10,35 @@ class BettingRepository {
     static async getBettingById(id) { return await Betting.findById(id); }
     
     static async getCountAndBetsByBettingId(gameId, bettingId) {
-        const [count, bettings] = await Promise.all([
-            Betting.countDocuments({ gameId, bettingId }),
-            Betting.find({ gameId, bettingId })
-        ]);
-
+        const [count, bettings] = await Promise.all([ Betting.countDocuments({ gameId, bettingId }), Betting.find({ gameId, bettingId }) ]);
         return { count, bettings };
     }
 
     static async getLatestBettingId() { return await Betting.findOne().sort({ createdAt: -1 }).exec(); }
 
     static async getBetsAfterCreatedAt(createdAt) { return await Betting.find({ createdAt: { $gt: new Date(createdAt) } }); }
+
+    static async getBettingsStats(gameId = null) {
+        const matchTodayStage = gameId ? { createdAt: { $gte: new Date().setHours(0, 0, 0, 0) }, gameId } : { createdAt: { $gte: new Date().setHours(0, 0, 0, 0) } };
+        const matchAllStage = gameId ? { gameId } : {};
+        const aggregateSum = async (matchStage, field) => {
+            const result = await Betting.aggregate([ { $match: matchStage }, { $group: { _id: null, total: { $sum: field } } } ]);
+            return result.length > 0 ? result[0].total : 0;
+        };
+        const [todayAmount, totalAmount, todayWinAmount, totalWinAmount] = await Promise.all([aggregateSum(matchTodayStage, '$amount'), aggregateSum(matchAllStage, '$amount'), aggregateSum(matchTodayStage, '$winAmount'), aggregateSum(matchAllStage, '$winAmount')]);
+        const data = { todayAmount, totalAmount, todayWinAmount, totalWinAmount };
+        return data;
+    }
+
+    static async getDashboardStats() {
+        const aggregateStats = async (matchStage) => {
+            const [result] = await Betting.aggregate([ { $match: matchStage }, { $group: { _id: null, totalAmount: { $sum: '$amount' }, totalWinAmount: { $sum: '$winAmount' } } } ]);
+            return result ? { totalAmount: result.totalAmount, totalWinAmount: result.totalWinAmount, profit: result.totalAmount - result.totalWinAmount } : { totalAmount: 0, totalWinAmount: 0, profit: 0 };
+        };
+        const [todayStats, totalStats] = await Promise.all([aggregateStats({ createdAt: { $gte: new Date().setHours(0, 0, 0, 0) } }), aggregateStats({})]);
+        const data = { todayAmount: todayStats.totalAmount, totalAmount: totalStats.totalAmount, todayWinAmount: todayStats.totalWinAmount, totalWinAmount: totalStats.totalWinAmount, todayProfit: todayStats.profit, totalProfit: totalStats.profit };
+        return data;
+    }
 
     static async updateBettingById(id, bettingData) {
         const betting = await Betting.findById(id);
@@ -55,4 +73,4 @@ class BettingRepository {
     }
 }
 
-export default BettingRepository;
+export default BettingRepository;  

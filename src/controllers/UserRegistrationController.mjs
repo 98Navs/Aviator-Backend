@@ -8,7 +8,7 @@ import { CommonHandler, ValidationError, NotFoundError } from './CommonHandler.m
 class UserRegistrationController {
     static async createUser(req, res) {
         try {
-            const userData = await UserRegistrationController.validateUserData(req.body);
+            const userData = await UserRegistrationController.validateUserData(req);
             const user = await UserRepository.createUser(userData);
             res.status(201).json({ status: 201, success: true, message: 'User created successfully', user });
         } catch (error) {
@@ -77,6 +77,18 @@ class UserRegistrationController {
         }
     }
 
+    static async changeImage(req, res) {
+        try {
+            const { userId } = req.params;
+            const newImagePath = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
+            const updatedUserImage = await UserRepository.updateUserImageByUserId(userId, newImagePath);
+
+            res.status(200).json({ status: 200, success: true, message: 'Image updated successfully.', updatedUserImage });
+        } catch (error) {
+            CommonHandler.catchError(error, res);
+        }
+    }
+
     //Static Methods Only For This Class (Not To Be Used In Routes)
     static async getUser(user) {
         if (typeof user !== 'string') throw new ValidationError('Invalid email, userId, or mobile provided in string format.');
@@ -87,25 +99,28 @@ class UserRegistrationController {
     }
 
     static async validateUserData(data, isUpdate = false) {
-        const { userName, email, mobile, password, referenceCode, role, status } = data;
+        const { userName, email, mobile, password, referenceCode, role, status } = data.body;
 
         if (!isUpdate) { await CommonHandler.validateRequiredFields({ userName, email, mobile, password }); }
         if (userName) { await CommonHandler.validateUserNameFormat(userName); }
-        if (userName) { data.userName = userName.trim(); }
+        if (userName) { data.body.userName = userName.trim(); }
         if (email) { await CommonHandler.validateEmailFormat(email); }
-        if (email) { data.email = email.trim(); }
+        if (email) { data.body.email = email.trim(); }
         if (mobile) { await CommonHandler.validateMobileFormat(mobile); }
         if (password) { await CommonHandler.validatePasswordFormat(password); }
         if (role) { await CommonHandler.validateRole(role); }
         if (status) { await CommonHandler.validateStatus(status); }
 
+        if (!isUpdate) { data.body.image = `${data.protocol}://${data.get('host')}/uploads/${data.file.filename}`; }
+        if (isUpdate) { if (data.body.image) { throw new ValidationError('You can not change image here') }; }
+
         if (!isUpdate) {
-            await UserRegistrationController.checkExistingUser(data.email, mobile);
-            data.password = await CommonHandler.hashPassword(password);
-            data.bonusAmount = await UserRegistrationController.getInitialBonus();
-            data = await UserRegistrationController.handleReferral(data, referenceCode);
+            await UserRegistrationController.checkExistingUser(data.body.email, mobile);
+            data.body.password = await CommonHandler.hashPassword(password);
+            data.body.bonusAmount = await UserRegistrationController.getInitialBonus();
+            data.body = await UserRegistrationController.handleReferral(data.body, referenceCode);
         }
-        return data;
+        return data.body;
     }
 
     static async checkExistingUser(email, mobile) {

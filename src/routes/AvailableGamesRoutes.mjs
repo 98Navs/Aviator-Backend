@@ -17,6 +17,9 @@ router.get('/getAvailableGamesByGameId/:gameId', AvailableGamesController.getAva
 // GET /Route to get all allowed status types
 router.get('/getAllowedStatusTypes', AvailableGamesController.getAllowedStatusTypes);
 
+// GET /Route to fetch all game names
+router.get('/getAllGameNames', AvailableGamesController.getAllGameNames);
+
 // PUT /Route to update a specific Available Game by its ID
 router.put('/updateAvailableGameByGameId/:gameId', uploadImages.array('images', 9999999999), AvailableGamesController.updateAvailableGameByGameId);
 

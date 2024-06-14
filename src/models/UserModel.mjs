@@ -2,7 +2,7 @@
 import { Schema, model } from 'mongoose';
 
 const userSchema = new Schema({
-    image: { type: Buffer, default: Buffer.alloc(0) },
+    image: { type: String, default: "http://localhost:8002/uploads/wallpaperflare.com_wallpaper-(1).jpg-1718348084091.jpeg" },
     userId: { type: Number, default: () => Math.floor(100000 + Math.random() * 900000), unique: true },
     userName: { type: String, required: true },
     email: { type: String, required: true, unique: true },
@@ -40,7 +40,6 @@ const userSchema = new Schema({
         virtuals: true,
         transform: (doc, ret) => {
             delete ret.password;
-            delete ret.image;
             delete ret.otp;
             ret.createdAt = ret.createdAt.toISOString();
             ret.updatedAt = ret.updatedAt.toISOString();

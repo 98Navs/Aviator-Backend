@@ -37,6 +37,15 @@ class AvailableGamesController {
         }
     }
 
+    static async getAllGameNames(req, res) {
+        try {
+            const gameNames = await AvailableGamesRepository.getAllGameNames();
+            res.status(200).json({ status: 200, success: true, message: 'Game names fetched successfully', gameNames });
+        } catch (error) {
+            CommonHandler.catchError(error, res);
+        }
+    }
+
     static async getAllowedStatusTypes(req, res) {
         try {
             const allowedStatusTypes = AvailableGamesController.validStatuses;
@@ -79,7 +88,7 @@ class AvailableGamesController {
     }
 
     static async availableGamesValidation(data, isUpdate = false) {
-        const { gameId, name, status } = data.body;
+        const { name, status } = data.body;
         const images = data.files;
 
         await CommonHandler.validateRequiredFields({ name, status });
@@ -89,16 +98,14 @@ class AvailableGamesController {
         if (!CommonHandler.validStatusForGames.includes(status)) { throw new ValidationError(`Status must be one of: ${CommonHandler.validStatusForGames.join(', ')} without any space`); }
         if (images.length === 0 || images.length > 5) { throw new ValidationError('Atleast one image is required and maximum 5 images, key is images.'); }
 
-        const basePath = `${data.protocol}://${data.get('host')}/uploads/`;
-        const imageUrls = images.map(image => `${basePath}${image.filename}`);
-        const availableGamesData = { gameId, name: name.trim(), status, images: imageUrls };
+        data.body.name = name.trim();
+        data.body.images = images.map(image => `${data.protocol}://${data.get('host')}/uploads/${image.filename}`);
 
         if (!isUpdate) {
-            const existingName = await AvailableGamesRepository.checkDuplicateGameName(availableGamesData.name);
-            if (existingName && existingName.status === 'Active') { throw new ValidationError('A game with Active status for this name already exists.'); }
+            const existingName = await AvailableGamesRepository.checkDuplicateGameName(data.body.name);
+            if (existingName) { throw new ValidationError('A game with the same name already exists.'); }
         }
-        
-        return availableGamesData;
+        return data.body;
     }
 }
 

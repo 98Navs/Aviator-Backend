@@ -11,6 +11,10 @@ class AvailableGamesRepository {
 
     static async getAvailableGamesByGameId(gameId) { return await AvailableGames.findOne({ gameId }); }
 
+    static async getAvailableGamesByGameName(name) { return await AvailableGames.findOne({ name: new RegExp(`^${name}`, 'i') }); }
+
+    static async getAllGameNames() { return await AvailableGames.distinct('name'); }
+
     static async checkDuplicateGameName(name) { return await AvailableGames.findOne({ name: new RegExp(`^${name}`, 'i') }); }
 
     static async updateAvailableGamesByGameId(gameId, availableGamesData) {

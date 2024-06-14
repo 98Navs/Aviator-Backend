@@ -28,6 +28,29 @@ class UserController {
         }
     }
 
+    static async getAllAffiliateUsers(req, res) {
+        try {
+            const { pageNumber = 1, perpage = 10 } = req.query;
+            const options = { page: Number(pageNumber), limit: Number(perpage) };
+            const users = await UserRepository.getAllAffiliateUsers('affiliate', options, req);
+            return res.status(200).json({ status: 200, success: true, message: 'Affiliate users fetched successfully', ...users });
+        } catch (error) {
+            CommonHandler.catchError(error, res);
+        }
+    }
+
+    static async getUserStats(req, res) {
+        try {
+            const [usersCreatedToday, totalUsers] = await Promise.all([UserRepository.countUsers({ createdAt: { $gte: new Date().setHours(0, 0, 0, 0) } }), UserRepository.countUsers({})]);
+            const [todayAffiliates, totalAffiliates ] = await Promise.all([UserRepository.countUsers({ role: 'affiliate', createdAt: { $gte: new Date().setHours(0, 0, 0, 0) } }), UserRepository.countUsers({ role: 'affiliate' })]);
+            const data = { usersCreatedToday, totalUsers, todayAffiliates, totalAffiliates };
+            
+            res.status(200).json({ status: 200, success: true, message: 'User statistics fetched successfully', data });
+        } catch (error) {
+            CommonHandler.catchError(error, res);
+        }
+    }
+
     static async getAllowedRolesAndStatusTypes(req, res) {
         try {
             const allowedRolesTypes = CommonHandler.validUserRoles;
@@ -54,7 +77,7 @@ class UserController {
         try {
             const { userId } = req.params;
             await UserController.validateAndFetchUserByUserId(userId);
-            const userData = await UserRegistrationController.validateUserData(req.body, true)
+            const userData = await UserRegistrationController.validateUserData(req, true)
             const updatedUser = await UserRepository.updateUserByUserId(userId, userData);
             res.status(200).json({ status: 200, success: true, message: `Data updated successfully for userId ${userId}`, updatedUser });
         } catch (error) {

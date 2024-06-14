@@ -3,11 +3,12 @@ import express from 'express';
 import UserController from '../controllers/UserController.mjs';
 import UserRegistrationController from '../controllers/UserRegistrationController.mjs';
 import Middleware from '../project_setup/Middleware.mjs'
+import { uploadImages } from '../project_setup/Utils.mjs';
 
 const router = express.Router();
 
 // POST /Route to create a new user
-router.post('/createUser', UserRegistrationController.createUser);
+router.post('/createUser', uploadImages.single('image'), UserRegistrationController.createUser);
 
 // POST /Route for user to signIn
 router.post('/signIn', UserRegistrationController.signIn);
@@ -30,6 +31,9 @@ router.get('/getAllUsers', Middleware.admin, UserController.getAllUsers);
 // GET /Route to get a user by userId
 router.get('/getUserByUserId/:userId', Middleware.admin, UserController.getUserByUserId);
 
+// GET /Route to get all users whose role is "affiliate"
+router.get('/getAllAffiliateUsers', Middleware.admin, UserController.getAllAffiliateUsers);
+
 // GET /Route to get allowed roles and status types
 router.get('/getAllowedRolesAndStatusTypes', Middleware.admin, UserController.getAllowedRolesAndStatusTypes);
 
@@ -38,6 +42,9 @@ router.get('/getWalletByUserId/:userId', Middleware.admin, UserController.getWal
 
 // PUT /Route to update a user by userId
 router.put('/updateUserByUserId/:userId', Middleware.admin, UserController.updateUserByUserId);
+
+// PUT /Route to update a user by userId
+router.put('/changeImage/:userId', uploadImages.single('image'), UserRegistrationController.changeImage);
 
 // DELETE /Route to delete a user by userId
 router.delete('/updateUserByUserId/:userId', Middleware.admin, UserController.updateUserByUserId);

@@ -77,18 +77,18 @@ class BannerController {
         if (!CommonHandler.validStatuses.includes(status)) { throw new ValidationError(`Status must be one of: ${CommonHandler.validStatuses.join(', ')} without any space`); } 
         if (images.length === 0 || images.length > 5) { throw new ValidationError('Atleast one image is required and maximum 5 images, key is images.'); }
 
-        const basePath = `${data.protocol}://${data.get('host')}/uploads/`;
-        const imageUrls = images.map(image => `${basePath}${image.filename}`);
-        const bannerData = { name: name.trim(), groupId: groupId.trim(), status, images: imageUrls, };
+        data.body.name = name.trim();
+        data.body.groupId = groupId.trim();
+        data.body.images = images.map(image => `${data.protocol}://${data.get('host')}/uploads/${image.filename}`);
 
         if (!isUpdate) {
-            const existingName = await BannerRepository.checkDuplicateBannrName(bannerData.name);
+            const existingName = await BannerRepository.checkDuplicateBannrName(data.body.name);
             if (existingName && existingName.status === 'Active') { throw new ValidationError('A banner with Active status for same name already exists.'); }
-            const existingGroupId = await BannerRepository.checkDuplicateGroupId(bannerData.groupId);
+            const existingGroupId = await BannerRepository.checkDuplicateGroupId(data.body.groupId);
             if (existingGroupId && existingGroupId.status === 'Active') { throw new ValidationError('A groupId with Active status for same groupId already exists.'); }
         }
         
-        return bannerData;
+        return data.body;
     }
 }
 

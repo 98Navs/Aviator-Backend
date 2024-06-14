@@ -16,6 +16,9 @@ router.get('/getAllBetting', BettingController.getAllBetting);
 // GET /Route to get a latest Betting by its betting ID
 router.get('/getDetailsForLatestBettingId', BettingController.getDetailsForLatestBettingId);
 
+// GET /Route to fetch total sums of amount and winAmount
+router.get('/getBettingsStats', BettingController.getBettingsStats);
+
 // PUT /Route to update a specific Betting by its ID
 router.put('/updateBettingById/:id', BettingController.updateBettingById);
 

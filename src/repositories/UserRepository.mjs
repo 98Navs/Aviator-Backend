@@ -1,4 +1,6 @@
 // src/repositories/UserRepository.mjs
+import fs from 'fs';
+import path from 'path';
 import User from '../models/UserModel.mjs';
 import { paginate } from '../project_setup/Utils.mjs';
 
@@ -20,6 +22,22 @@ class UserRepository {
     static async getUserByReferenceCode(promoCode) { return await User.findOne({ promoCode }); }
 
     static async getUserByUserId(userId) { return await User.findOne({ userId }); }
+    
+    static async countUsers(query) { return await User.countDocuments(query); }
+
+    static async updateUserImageByUserId(userId, newImagePath) {
+            const existingUser = await User.findOne({ userId });
+            const imagePath = path.join('src/public/uploads', path.basename(existingUser.image));
+            await fs.promises.unlink(imagePath).catch(err => { if (err.code !== 'ENOENT') throw err; });
+            existingUser.image = newImagePath;
+            await existingUser.save();
+            return existingUser;
+    }
+
+    static async getAllAffiliateUsers(role, options, req) {
+        const query = { role };
+        return await paginate(User, query, options.page, options.limit, req);
+    }
 
     static async filterUsers(filterParams, options, req) {
         const query = {};
