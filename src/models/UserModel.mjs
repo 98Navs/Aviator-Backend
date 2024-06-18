@@ -2,7 +2,7 @@
 import { Schema, model } from 'mongoose';
 
 const userSchema = new Schema({
-    image: { type: String, default: "http://localhost:8002/uploads/wallpaperflare.com_wallpaper-(1).jpg-1718348084091.jpeg" },
+    image: { type: String },
     userId: { type: Number, default: () => Math.floor(100000 + Math.random() * 900000), unique: true },
     userName: { type: String, required: true },
     email: { type: String, required: true, unique: true },

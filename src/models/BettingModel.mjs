@@ -3,6 +3,7 @@ import { Schema, model } from 'mongoose';
 
 const BettingSchema = new Schema({
     gameId: { type: Number, required: true },
+    gameName: { type: String, required: true},
     bettingId: { type: Number, required: true },
     userId: { type: Number, required: true },
     userName: { type: String, required: true },

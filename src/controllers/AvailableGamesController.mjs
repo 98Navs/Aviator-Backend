@@ -27,7 +27,7 @@ class AvailableGamesController {
         }
     }
 
-    static async getAvailableGamesByGameId(req, res) {
+    static async getAvailableGameByGameId(req, res) {
         try {
             const { gameId } = req.params;
             const availableGames = await AvailableGamesController.validateAndFetchAvailableGameByGameId(gameId);
@@ -46,11 +46,10 @@ class AvailableGamesController {
         }
     }
 
-    static async getAllowedStatusTypes(req, res) {
+    static async getGameAllowedStatusTypes(req, res) {
         try {
-            const allowedStatusTypes = AvailableGamesController.validStatuses;
-            const data = { allowedStatusTypes };
-            res.status(200).json({ status: 200, success: true, message: 'Allowed bonus types and statuses fetched successfully', data });
+            const allowedStatusTypes = CommonHandler.validStatusForGames;
+            res.status(200).json({ status: 200, success: true, message: 'Allowed statuses fetched successfully', data: allowedStatusTypes });
         } catch (error) {
             CommonHandler.catchError(error, res);
         }
@@ -99,7 +98,7 @@ class AvailableGamesController {
         if (images.length === 0 || images.length > 5) { throw new ValidationError('Atleast one image is required and maximum 5 images, key is images.'); }
 
         data.body.name = name.trim();
-        data.body.images = images.map(image => `${data.protocol}://${data.get('host')}/uploads/${image.filename}`);
+        data.body.images = images.map(image => `${data.protocol}://${data.get('host')}/gameImages/${image.filename}`);
 
         if (!isUpdate) {
             const existingName = await AvailableGamesRepository.checkDuplicateGameName(data.body.name);

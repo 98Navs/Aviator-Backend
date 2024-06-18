@@ -23,7 +23,7 @@ class DashboardController{
             if (!startDate || !endDate) { throw new ValidationError('Both startDate and endDate are required.'); }
             const [dailyStats, weeklyStats, monthlyStats, yearlyStats] = await BettingRepository.getGraphStats(startDate, endDate);
             const data = { dailyStats, weeklyStats, monthlyStats, yearlyStats };
-            res.status(200).json({ status: 200, success: true, message: 'Amount and winAmount graph stats fetched successfully', data });
+            res.status(200).json({ status: 200, success: true, message: 'Graph stats fetched successfully', data });
         } catch (error) {
             CommonHandler.catchError(error, res);
         }

@@ -2,8 +2,9 @@
 import bcrypt from 'bcrypt';
 import UserRepository from '../repositories/UserRepository.mjs';
 import AmountSetupRepository from '../repositories/AmountSetupRepository.mjs';
-import { GenerateSignature, sendEmail } from '../project_setup/Utils.mjs';
+import { sendEmail } from '../project_setup/Utils.mjs';
 import { CommonHandler, ValidationError, NotFoundError } from './CommonHandler.mjs';
+import Middleware from '../project_setup/Middleware.mjs';
 
 class UserRegistrationController {
     static async createUser(req, res) {
@@ -24,7 +25,7 @@ class UserRegistrationController {
             if (!existingUser) { throw new NotFoundError("user not found for the provided details"); }
             if (existingUser.status != 'Active') { throw new ValidationError('User account has been deleted or suspended'); }
             if (!bcrypt.compare(password, existingUser.password)) { throw new ValidationError('Invalid credentials.'); }
-            const token = await GenerateSignature({ userId: existingUser.userId, email: existingUser.email, objectId: existingUser._id, role: existingUser.role, accessiableGames: existingUser.accessiableGames }, res);
+            const token = await Middleware.generateToken({ userId: existingUser.userId, email: existingUser.email, objectId: existingUser._id, role: existingUser.role, accessiableGames: existingUser.accessiableGames }, res);
             res.status(200).json({ status: 200, success: true, message: 'Sign in successful!', user: { userId: existingUser.userId, email: existingUser.email, token } });
         } catch (error) {
             CommonHandler.catchError(error, res);
@@ -77,12 +78,11 @@ class UserRegistrationController {
         }
     }
 
-    static async changeImage(req, res) {
+    static async changeUserImage(req, res) {
         try {
             const { userId } = req.params;
-            const newImagePath = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
+            const newImagePath = `${req.protocol}://${req.get('host')}/profileImages/${req.file.filename}`;
             const updatedUserImage = await UserRepository.updateUserImageByUserId(userId, newImagePath);
-
             res.status(200).json({ status: 200, success: true, message: 'Image updated successfully.', updatedUserImage });
         } catch (error) {
             CommonHandler.catchError(error, res);
@@ -111,7 +111,7 @@ class UserRegistrationController {
         if (role) { await CommonHandler.validateRole(role); }
         if (status) { await CommonHandler.validateStatus(status); }
 
-        if (!isUpdate) { data.body.image = `${data.protocol}://${data.get('host')}/uploads/${data.file.filename}`; }
+        if (!isUpdate) { data.body.image = `${data.protocol}://${data.get('host')}/profileImages/${data.file.filename}`; }
         if (isUpdate) { if (data.body.image) { throw new ValidationError('You can not change image here') }; }
 
         if (!isUpdate) {
@@ -140,7 +140,7 @@ class UserRegistrationController {
             const referedByUser = await UserRepository.getUserByReferenceCode(data.referenceCode);
             if (!referedByUser) { data = await UserRegistrationController.assignAdminReferral(data); }
             else { await UserRegistrationController.updateReferralUser(referedByUser, data); }
-        } else { data = await UserRegistrationController.assignAdminReferral(data);}
+        } else { data = await UserRegistrationController.assignAdminReferral(data); }
         return data;
     }
 
@@ -158,14 +158,14 @@ class UserRegistrationController {
         referedByUser.numberOfReferals += 1;
         const perReferalBonus = await AmountSetupRepository.getAmountSetupBySettingName('Per Referal Bonus');
         if (!perReferalBonus) { throw new NotFoundError(`Amount Setting with name "Per Referal Bonus" not found`); }
-        referedByUser.bonusAmount += parseInt(perReferalBonus.value); 
+        referedByUser.bonusAmount += parseInt(perReferalBonus.value);
         if (referedByUser.role === "user") { await UserRegistrationController.updateUserReferralCommission(referedByUser); }
         else if (referedByUser.role === "affiliate") { data.accessiableGames = referedByUser.accessiableGames; }
         await referedByUser.save();
     }
 
     static async updateUserReferralCommission(user) {
-        const levels = [ { name: 'Level 1 Commission', threshold: 10 }, { name: 'Level 2 Commission', threshold: 5 }, { name: 'Level 3 Commission', threshold: 0 } ];
+        const levels = [{ name: 'Level 1 Commission', threshold: 10 }, { name: 'Level 2 Commission', threshold: 5 }, { name: 'Level 3 Commission', threshold: 0 }];
         for (const level of levels) {
             if (user.numberOfReferals >= level.threshold) {
                 const commission = await AmountSetupRepository.getAmountSetupBySettingName(level.name);

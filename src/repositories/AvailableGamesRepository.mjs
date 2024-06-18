@@ -20,7 +20,7 @@ class AvailableGamesRepository {
     static async updateAvailableGamesByGameId(gameId, availableGamesData) {
         const existingGame = await AvailableGames.findOne({ gameId });
         await Promise.all(existingGame.images.map(image =>
-            fs.promises.unlink(path.join('src/public/uploads', image)).catch(err => {
+            fs.promises.unlink(path.join('src/public/gameImages', path.basename(image))).catch(err => {
                 if (err.code !== 'ENOENT') throw err;
             })
         ));
@@ -29,7 +29,7 @@ class AvailableGamesRepository {
 
     static async deleteAvailableGamesByGameId(gameId, availableGames) {
         await Promise.all(availableGames.images.map(image =>
-            fs.promises.unlink(path.join('src/public/uploads', image)).catch(err => {
+            fs.promises.unlink(path.join('src/public/gameImages', path.basename(image))).catch(err => {
                 if (err.code !== 'ENOENT') throw err;
             })
         ));

@@ -120,7 +120,8 @@ class BettingController {
         const referenceUser = await UserRepository.getUserByPromoCode(user.referenceCode);
         await BettingController.processBettingStatus(user, referenceUser, amount, winAmount, status, data);
         const gameDetails = await AvailableGamesRepository.getAvailableGamesByGameId(gameId)
-        if(!gameDetails){throw new NotFoundError(`Game with this gameId: ${gameId} not found`)}
+        if (!gameDetails) { throw new NotFoundError(`Game with this gameId: ${gameId} not found`); }
+        data.gameName = gameDetails.name;
         if (!user.playedGame.includes(gameDetails.name)) { user.playedGame.push(gameDetails.name); }
         
         await user.save();

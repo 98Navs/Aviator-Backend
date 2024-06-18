@@ -58,6 +58,15 @@ class DepositBonusController {
         }
     }
 
+    static async getDepositAllowedStatusTypes(req, res) {
+        try {
+            const allowedStatusTypes = CommonHandler.validStatuses;
+            res.status(200).json({ status: 200, success: true, message: 'Allowed bonus types and statuses fetched successfully', data: {  allowedStatusTypes } });
+        } catch (error) {
+            CommonHandler.catchError(error, res);
+        }
+    }
+
     static async updateDepositBonusByOfferId(req, res) {
         try {
             const { offerId } = req.params;

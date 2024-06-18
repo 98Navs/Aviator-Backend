@@ -19,7 +19,7 @@ class BettingRepository {
     static async getBetsAfterCreatedAt(createdAt) { return await Betting.find({ createdAt: { $gt: new Date(createdAt) } }); }
 
     static async getBettingsStats(gameId = null) {
-        const matchTodayStage = gameId ? { createdAt: { $gte: new Date().setHours(0, 0, 0, 0) }, gameId } : { createdAt: { $gte: new Date().setHours(0, 0, 0, 0) } };
+        const matchTodayStage = gameId ? { createdAt: { $gte: new Date()}, gameId } : { createdAt: { $gte: new Date() } };
         const matchAllStage = gameId ? { gameId } : {};
         const aggregateSum = async (matchStage, field) => {
             const result = await Betting.aggregate([ { $match: matchStage }, { $group: { _id: null, total: { $sum: field } } } ]);
@@ -35,13 +35,13 @@ class BettingRepository {
             const [result] = await Betting.aggregate([ { $match: matchStage }, { $group: { _id: null, totalAmount: { $sum: '$amount' }, totalWinAmount: { $sum: '$winAmount' } } } ]);
             return result ? { totalAmount: result.totalAmount, totalWinAmount: result.totalWinAmount, profit: result.totalAmount - result.totalWinAmount } : { totalAmount: 0, totalWinAmount: 0, profit: 0 };
         };
-        const [todayStats, totalStats] = await Promise.all([aggregateStats({ createdAt: { $gte: new Date().setHours(0, 0, 0, 0) } }), aggregateStats({})]);
+        const [todayStats, totalStats] = await Promise.all([aggregateStats({ createdAt: { $gte: new Date() } }), aggregateStats({})]);
         const data = { todayAmount: todayStats.totalAmount, totalAmount: totalStats.totalAmount, todayWinAmount: todayStats.totalWinAmount, totalWinAmount: totalStats.totalWinAmount, todayProfit: todayStats.profit, totalProfit: totalStats.profit };
         return data;
     }
 
     static async getGraphStats(startDate, endDate) {
-        const matchStage = { createdAt: { $gte: new Date(new Date(startDate).setHours(0, 0, 0, 0)), $lte: new Date(new Date(endDate).setHours(23, 59, 59, 999)) } };
+        const matchStage = { createdAt: { $gte: new Date(startDate), $lte: new Date(new Date(endDate).setHours(23, 59, 59, 999)) } };
         const aggregateStats = (format) => { return Betting.aggregate([ { $match: matchStage }, { $group: { _id: { $dateToString: { format, date: '$createdAt' } }, totalAmount: { $sum: '$amount' }, totalWinAmount: { $sum: '$winAmount' }, totalProfit: { $sum: { $subtract: ['$amount', '$winAmount'] } } } }, { $sort: { _id: 1 } } ]); };
         const dailyStats = aggregateStats('%Y-%m-%d');
         const weeklyStats = aggregateStats('%Y-%U');
@@ -74,8 +74,7 @@ class BettingRepository {
             query.createdAt = {};
             if (filterParams.startDate) query.createdAt.$gte = new Date(filterParams.startDate);
             if (filterParams.endDate) {
-                const endDate = new Date(filterParams.endDate);
-                endDate.setHours(23, 59, 59, 999);
+                const endDate = new Date(new Date(filterParams.endDate).setHours(23, 59, 59, 999));
                 query.createdAt.$lte = endDate;
             }
         }

@@ -28,6 +28,7 @@ class CommonHandler {
     static catchError(error, res) {
         try {
             if (error instanceof ValidationError) { res.status(400).json({ status: 400, success: false, message: error.message }); }
+            else if (error instanceof MiddlewareError) { res.status(403).json({ status: 403, success: false, message: error.message }); }
             else if (error instanceof NotFoundError) { res.status(404).json({ status: 404, success: false, message: error.message }); }
             else { res.status(500).json({ status: 500, success: false, message: 'Internal server error.' }); }
         } catch (error) {
@@ -47,6 +48,7 @@ class CommonHandler {
 //Assigned Errors
 class ValidationError extends Error { constructor(message) { super(message); this.name = 'ValidationError'; } }
 class NotFoundError extends Error { constructor(message) { super(message); this.name = 'NotFoundError'; } }
+class MiddlewareError extends Error { constructor(message) { super(message); this.name = 'MiddlewareError'; } }
 
 
-export { CommonHandler, ValidationError, NotFoundError };
+export { CommonHandler, ValidationError, NotFoundError, MiddlewareError };

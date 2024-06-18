@@ -11,8 +11,6 @@ class UserRepository {
 
     static async updateUserByUserId(userId, userData) { return await User.findOneAndUpdate({ userId }, userData, { new: true }); }
 
-    static async deleteUserByUserId(userId) { return await User.findOneAndDelete({ userId }); }
-
     static async getUserByEmail(email) { return await User.findOne({ email: new RegExp(`^${email}`, 'i')}); }
 
     static async getUserByMobile(mobile) { return await User.findOne({ mobile }); }
@@ -26,12 +24,21 @@ class UserRepository {
     static async countUsers(query) { return await User.countDocuments(query); }
 
     static async updateUserImageByUserId(userId, newImagePath) {
-            const existingUser = await User.findOne({ userId });
-            const imagePath = path.join('src/public/uploads', path.basename(existingUser.image));
+            const user = await User.findOne({ userId });
+            const imagePath = path.join('src/public/profileImages', path.basename(user.image));
             await fs.promises.unlink(imagePath).catch(err => { if (err.code !== 'ENOENT') throw err; });
-            existingUser.image = newImagePath;
-            await existingUser.save();
-            return existingUser;
+            user.image = newImagePath;
+            await user.save();
+            return user;
+    }
+
+    static async deleteUserByUserId(userId) {
+        const user = await User.findOneAndDelete({ userId });
+        if (user) {
+            const imagePath = path.join('src/public/profileImages', path.basename(user.image));
+            await fs.promises.unlink(imagePath).catch(err => { if (err.code !== 'ENOENT') throw err; });
+        }
+        return user;
     }
 
     static async getAllAffiliateUsers(role, options, req) {
@@ -54,8 +61,7 @@ class UserRepository {
             query.createdAt = {};
             if (filterParams.startDate) query.createdAt.$gte = new Date(filterParams.startDate);
             if (filterParams.endDate) {
-                const endDate = new Date(filterParams.endDate);
-                endDate.setHours(23, 59, 59, 999);
+                const endDate = new Date(new Date(filterParams.endDate).setHours(23, 59, 59, 999));
                 query.createdAt.$lte = endDate;
             }
         }

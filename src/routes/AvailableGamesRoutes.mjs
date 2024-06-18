@@ -12,10 +12,10 @@ router.post('/createAvailableGame', uploadImages.array('images', 9999999999), Av
 router.get('/getAllAvailableGames', AvailableGamesController.getAllAvailableGames);
 
 // GET /Route to get a specific Available Game by its ID
-router.get('/getAvailableGamesByGameId/:gameId', AvailableGamesController.getAvailableGamesByGameId);
+router.get('/getAvailableGameByGameId/:gameId', AvailableGamesController.getAvailableGameByGameId);
 
-// GET /Route to get all allowed status types
-router.get('/getAllowedStatusTypes', AvailableGamesController.getAllowedStatusTypes);
+// GET /Route to get all allowed game status types
+router.get('/getGameAllowedStatusTypes', AvailableGamesController.getGameAllowedStatusTypes);
 
 // GET /Route to fetch all game names
 router.get('/getAllGameNames', AvailableGamesController.getAllGameNames);

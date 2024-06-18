@@ -34,6 +34,15 @@ class BannerController {
         }
     }
 
+    static async getBannerAllowedStatusTypes(req, res) {
+        try {
+            const allowedStatusTypes = CommonHandler.validStatuses;
+            res.status(200).json({ status: 200, success: true, message: 'Allowed statuses fetched successfully', data: allowedStatusTypes });
+        } catch (error) {
+            CommonHandler.catchError(error, res);
+        }
+    }
+
     static async updateBannerById(req, res) {
         try {
             const { id } = req.params;
@@ -79,7 +88,7 @@ class BannerController {
 
         data.body.name = name.trim();
         data.body.groupId = groupId.trim();
-        data.body.images = images.map(image => `${data.protocol}://${data.get('host')}/uploads/${image.filename}`);
+        data.body.images = images.map(image => `${data.protocol}://${data.get('host')}/bannerImages/${image.filename}`);
 
         if (!isUpdate) {
             const existingName = await BannerRepository.checkDuplicateBannrName(data.body.name);

@@ -13,6 +13,9 @@ router.get('/getAllDepositBonuses', DepositBonusController.getAllDepositBonuses)
 // GET /Route to get a specific Deposit bonus by its offer ID
 router.get('/getDepositBonusByOfferId/:offerId', DepositBonusController.getDepositBonusByOfferId);
 
+// GET /Route to get all allowed deposit bonus status types
+router.get('/getDepositAllowedStatusTypes', DepositBonusController.getDepositAllowedStatusTypes);
+
 // PUT /Route to update a specific Deposit bonus by its offer ID
 router.put('/updateDepositBonusByOfferId/:offerId', DepositBonusController.updateDepositBonusByOfferId);
 

@@ -39,10 +39,9 @@ class FestivalBonusController {
 
     static async getAllowedBonusAndStatusTypes(req, res) {
         try {
-            const allowedBonusTypes = FestivalBonusController.validBonusTypes;
-            const allowedStatusTypes = FestivalBonusController.validStatuses;
-            const data = { allowedBonusTypes, allowedStatusTypes };
-            res.status(200).json({ status: 200, success: true, message: 'Allowed bonus types and statuses fetched successfully', data });
+            const allowedBonusTypes = CommonHandler.validBonusTypes;
+            const allowedStatusTypes = CommonHandler.validStatuses;
+            res.status(200).json({ status: 200, success: true, message: 'Allowed bonus types and statuses fetched successfully', data : { allowedBonusTypes, allowedStatusTypes } });
         } catch (error) {
             CommonHandler.catchError(error, res);
         }

@@ -39,24 +39,11 @@ class UserController {
         }
     }
 
-    static async getUserStats(req, res) {
-        try {
-            const [usersCreatedToday, totalUsers] = await Promise.all([UserRepository.countUsers({ createdAt: { $gte: new Date().setHours(0, 0, 0, 0) } }), UserRepository.countUsers({})]);
-            const [todayAffiliates, totalAffiliates ] = await Promise.all([UserRepository.countUsers({ role: 'affiliate', createdAt: { $gte: new Date().setHours(0, 0, 0, 0) } }), UserRepository.countUsers({ role: 'affiliate' })]);
-            const data = { usersCreatedToday, totalUsers, todayAffiliates, totalAffiliates };
-            
-            res.status(200).json({ status: 200, success: true, message: 'User statistics fetched successfully', data });
-        } catch (error) {
-            CommonHandler.catchError(error, res);
-        }
-    }
-
     static async getAllowedRolesAndStatusTypes(req, res) {
         try {
             const allowedRolesTypes = CommonHandler.validUserRoles;
             const allowedStatusTypes = CommonHandler.validUserStatuses;
-            const data = { allowedRolesTypes, allowedStatusTypes };
-            res.status(200).json({ status: 200, success: true, message: 'Allowed roles and statuses types fetched successfully', data });
+            res.status(200).json({ status: 200, success: true, message: 'Allowed roles and statuses types fetched successfully', data :{ allowedRolesTypes, allowedStatusTypes }});
         } catch (error) {
             CommonHandler.catchError(error, res);
         }

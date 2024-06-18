@@ -43,8 +43,8 @@ router.get('/getWalletByUserId/:userId', Middleware.admin, UserController.getWal
 // PUT /Route to update a user by userId
 router.put('/updateUserByUserId/:userId', Middleware.admin, UserController.updateUserByUserId);
 
-// PUT /Route to update a user by userId
-router.put('/changeImage/:userId', uploadImages.single('image'), UserRegistrationController.changeImage);
+// PUT /Route to update a user image by userId
+router.put('/changeUserImage/:userId', uploadImages.single('image'), UserRegistrationController.changeUserImage);
 
 // DELETE /Route to delete a user by userId
 router.delete('/updateUserByUserId/:userId', Middleware.admin, UserController.updateUserByUserId);

@@ -14,6 +14,9 @@ router.get('/getAllBanners', BannerController.getAllBanners);
 // GET /Route to get a specific Banner by its ID
 router.get('/getBannerById/:id', BannerController.getBannerById);
 
+// GET /Route to get all allowed status types
+router.get('/getBannerAllowedStatusTypes', BannerController.getBannerAllowedStatusTypes);
+
 // PUT /Route to update a specific Banner by its ID
 router.put('/updateBannerById/:id', uploadImages.array('images', 9999999999), BannerController.updateBannerById);
 
