@@ -40,6 +40,17 @@ class UserController {
         }
     }
 
+    static async getAllSubRegisteredUsers(req, res) {
+        try {
+            const { promoCode } = req.query;
+            const users = await UserRepository.getAllSubRegisteredUsers(promoCode);
+            const data = users.map(user => ({ userId: user.userId, userName: user.userName }));
+            return res.status(200).json({ status: 200, success: true, message: 'Fetched all sub users successfully', data });
+        } catch (error) {
+            CommonHandler.catchError(error, res);
+        }
+    }
+
     static async getAllowedRolesAndStatusTypes(req, res) {
         try {
             const allowedRolesTypes = CommonHandler.validUserRoles;
@@ -61,9 +72,9 @@ class UserController {
         }
     }
 
-    static async getAllUsersForCSV(req, res) {
+    static async getAllUsersDataInCSV(req, res) {
         try {
-            const users = await UserRepository.getAllUsersForCSV();
+            const users = await UserRepository.getAllUsersDataInCSV();
             const fields = [ '_id', 'image', 'userId', 'userName', 'email', 'mobile', 'role', 'commissionPercentage', 'playedAmount', 'playedGame', 'numberOfGames', 'accessiableGames', 'weightage', 'wallet', 'lifetimeDepositAmount', 'lifetimeWithdrawalAmount', 'lifetimeNumberOfDeposit', 'lifetimeNumberOfWithdrawal', 'promoCode', 'referenceCode', 'status', 'createdAt', 'updatedAt' ];
             const json2csvParser = new Parser({ fields });
             const csv = json2csvParser.parse(users);

@@ -34,6 +34,9 @@ router.get('/getUserByUserId/:userId', Middleware.admin, UserController.getUserB
 // GET /Route to get all users whose role is "affiliate"
 router.get('/getAllAffiliateUsers', Middleware.admin, UserController.getAllAffiliateUsers);
 
+// GET /Route to get all sub registered users"
+router.get('/getAllSubRegisteredUsers', Middleware.affiliate, UserController.getAllSubRegisteredUsers);
+
 // GET /Route to get allowed roles and status types
 router.get('/getAllowedRolesAndStatusTypes', Middleware.admin, UserController.getAllowedRolesAndStatusTypes);
 
@@ -41,7 +44,7 @@ router.get('/getAllowedRolesAndStatusTypes', Middleware.admin, UserController.ge
 router.get('/getWalletByUserId/:userId', Middleware.admin, UserController.getWalletByUserId);
 
 // GET /Route to export all users as CSV
-router.get('/getAllUsersForCSV', UserController.getAllUsersForCSV);
+router.get('/getAllUsersDataInCSV', Middleware.admin, UserController.getAllUsersDataInCSV);
 
 // PUT /Route to update a user by userId
 router.put('/updateUserByUserId/:userId', Middleware.admin, UserController.updateUserByUserId);

@@ -9,19 +9,32 @@ class UserRepository {
 
     static async getAllUsers(options, req) { return await paginate(User, {}, options.page, options.limit, req); }
 
-    static async updateUserByUserId(userId, userData) { return await User.findOneAndUpdate({ userId }, userData, { new: true }); }
-
     static async getUserByEmail(email) { return await User.findOne({ email: new RegExp(`^${email}`, 'i')}); }
 
     static async getUserByMobile(mobile) { return await User.findOne({ mobile }); }
 
     static async getUserByPromoCode(promoCode) { return await User.findOne({ promoCode }); }
 
+    static async getAllSubRegisteredUsers(referenceCode) { return await User.find({ referenceCode }); }
+
     static async getUserByReferenceCode(promoCode) { return await User.findOne({ promoCode }); }
 
     static async getUserByUserId(userId) { return await User.findOne({ userId }); }
+
+    static async getAllUsersDataInCSV() {
+        const users = await User.find({}).lean();
+        return users.map(user => {
+            const userObj = new User(user).toObject({ virtuals: true });
+            return { ...userObj, _id: userObj._id.toString(), playedGame: userObj.playedGame.join(', '), accessiableGames: userObj.accessiableGames.join(', ') };
+        });
+    }
+
+    static async getAllAffiliateUsers(role, options, req) {
+        const query = { role };
+        return await paginate(User, query, options.page, options.limit, req);
+    }
     
-    static async countUsers(query) { return await User.countDocuments(query); }
+    static async updateUserByUserId(userId, userData) { return await User.findOneAndUpdate({ userId }, userData, { new: true }); }
 
     static async updateUserImageByUserId(userId, newImagePath) {
             const user = await User.findOne({ userId });
@@ -41,10 +54,7 @@ class UserRepository {
         return user;
     }
 
-    static async getAllAffiliateUsers(role, options, req) {
-        const query = { role };
-        return await paginate(User, query, options.page, options.limit, req);
-    }
+    static async countUsers(query) { return await User.countDocuments(query); }
 
     static async filterUsers(filterParams, options, req) {
         const query = {};
@@ -66,14 +76,6 @@ class UserRepository {
             }
         }
         return await paginate(User, query, options.page, options.limit, req);
-    }
-
-    static async getAllUsersForCSV() {
-        const users = await User.find({}).lean();
-        return users.map(user => {
-            const userObj = new User(user).toObject({ virtuals: true });
-            return { ...userObj, _id: userObj._id.toString(), playedGame: userObj.playedGame.join(', '), accessiableGames: userObj.accessiableGames.join(', ') };
-        });
     }
 }
 
