@@ -40,6 +40,9 @@ router.get('/getAllowedRolesAndStatusTypes', Middleware.admin, UserController.ge
 // GET /Route to get wallet details by userID
 router.get('/getWalletByUserId/:userId', Middleware.admin, UserController.getWalletByUserId);
 
+// GET /Route to export all users as CSV
+router.get('/getAllUsersForCSV', UserController.getAllUsersForCSV);
+
 // PUT /Route to update a user by userId
 router.put('/updateUserByUserId/:userId', Middleware.admin, UserController.updateUserByUserId);
 

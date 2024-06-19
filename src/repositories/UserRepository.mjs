@@ -67,6 +67,14 @@ class UserRepository {
         }
         return await paginate(User, query, options.page, options.limit, req);
     }
+
+    static async getAllUsersForCSV() {
+        const users = await User.find({}).lean();
+        return users.map(user => {
+            const userObj = new User(user).toObject({ virtuals: true });
+            return { ...userObj, _id: userObj._id.toString(), playedGame: userObj.playedGame.join(', '), accessiableGames: userObj.accessiableGames.join(', ') };
+        });
+    }
 }
 
 export default UserRepository;

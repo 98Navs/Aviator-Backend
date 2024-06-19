@@ -1,4 +1,5 @@
 //src/controllers/UserController.mjs
+import { Parser } from 'json2csv';
 import UserRepository from '../repositories/UserRepository.mjs';
 import { CommonHandler, ValidationError, NotFoundError } from './CommonHandler.mjs'
 import UserRegistrationController from './UserRegistrationController.mjs';
@@ -60,6 +61,19 @@ class UserController {
         }
     }
 
+    static async getAllUsersForCSV(req, res) {
+        try {
+            const users = await UserRepository.getAllUsersForCSV();
+            const fields = [ '_id', 'image', 'userId', 'userName', 'email', 'mobile', 'role', 'commissionPercentage', 'playedAmount', 'playedGame', 'numberOfGames', 'accessiableGames', 'weightage', 'wallet', 'lifetimeDepositAmount', 'lifetimeWithdrawalAmount', 'lifetimeNumberOfDeposit', 'lifetimeNumberOfWithdrawal', 'promoCode', 'referenceCode', 'status', 'createdAt', 'updatedAt' ];
+            const json2csvParser = new Parser({ fields });
+            const csv = json2csvParser.parse(users);
+            res.header('Content-Type', 'text/csv');
+            res.attachment('users.csv').send(csv);
+        } catch (error) {
+            res.status(500).json({ status: 500, success: false, message: 'Failed to export users to CSV.' });
+        }
+    }
+
     static async updateUserByUserId(req, res) {
         try {
             const { userId } = req.params;
@@ -86,14 +100,15 @@ class UserController {
     static async deductAmountByUserId(req, res) {
         try {
             const { userId } = req.params;
-            const { depositAmount = 0, winningsAmount = 0, bonusAmount = 0, commissionAmount = 0 } = req.body;
+            const { depositAmount = 0, winningsAmount = 0, bonusAmount = 0, commissionAmount = 0, referralAmount = 0 } = req.body;
             const user = await UserController.validateAndFetchUserByUserId(userId);
             if (user.status === 'active') { throw new ValidationError('User satatus in active, amount can not be deducted if the user status is active'); }
             const amounts = [
                 { name: 'depositAmount', value: depositAmount, userValue: user.depositAmount },
                 { name: 'winningsAmount', value: winningsAmount, userValue: user.winningsAmount },
                 { name: 'bonusAmount', value: bonusAmount, userValue: user.bonusAmount },
-                { name: 'commissionAmount', value: commissionAmount, userValue: user.commissionAmount }
+                { name: 'commissionAmount', value: commissionAmount, userValue: user.commissionAmount },
+                { name: 'referralAmount', value: referralAmount, userValue: user.referralAmount }
             ];
             const insufficientFunds = amounts.filter(fund => fund.value > 0 && fund.userValue < fund.value);
             if (insufficientFunds.length > 0) {
@@ -108,7 +123,7 @@ class UserController {
             amounts.forEach(fund => { admin[fund.name] += fund.value; });
             await admin.save();
             const availableFunds = amounts.reduce((acc, fund) => ({ ...acc, [fund.name]: user[fund.name] }), {});
-            res.status(200).json({ status: 200, success: true, message: `Deducted depositAmount: ${depositAmount}, winningsAmount: ${winningsAmount}, bonusAmount: ${bonusAmount}, commissionAmount: ${commissionAmount} from userId ${userId} and transferred to admin.`, availableFunds });
+            res.status(200).json({ status: 200, success: true, message: `Deducted depositAmount: ${depositAmount}, winningsAmount: ${winningsAmount}, bonusAmount: ${bonusAmount}, commissionAmount: ${commissionAmount}, referralAmount: ${referralAmount} from userId ${userId} and transferred to admin.`, availableFunds });
         } catch (error) {
             CommonHandler.catchError(error, res);
         }

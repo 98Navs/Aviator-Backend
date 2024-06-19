@@ -110,9 +110,8 @@ class UserRegistrationController {
         if (password) { await CommonHandler.validatePasswordFormat(password); }
         if (role) { await CommonHandler.validateRole(role); }
         if (status) { await CommonHandler.validateStatus(status); }
-
-        if (!isUpdate) { data.body.image = `${data.protocol}://${data.get('host')}/profileImages/${data.file.filename}`; }
-        if (isUpdate) { if (data.body.image) { throw new ValidationError('You can not change image here') }; }
+        if (!isUpdate) { if(data.body.image) data.body.image = `${data.protocol}://${data.get('host')}/profileImages/${data.file.filename}`; }
+        if (isUpdate) { if (data.body.image) { throw new ValidationError('You can not change image with update user API here') }; }
 
         if (!isUpdate) {
             await UserRegistrationController.checkExistingUser(data.body.email, mobile);
@@ -137,9 +136,9 @@ class UserRegistrationController {
     static async handleReferral(data, referenceCode) {
         if (referenceCode) {
             data.referenceCode = referenceCode.toUpperCase();
-            const referedByUser = await UserRepository.getUserByReferenceCode(data.referenceCode);
-            if (!referedByUser) { data = await UserRegistrationController.assignAdminReferral(data); }
-            else { await UserRegistrationController.updateReferralUser(referedByUser, data); }
+            const referredByUser = await UserRepository.getUserByPromoCode(data.referenceCode);
+            if (!referredByUser) { data = await UserRegistrationController.assignAdminReferral(data); }
+            else { await UserRegistrationController.updateReferralUser(referredByUser, data); }
         } else { data = await UserRegistrationController.assignAdminReferral(data); }
         return data;
     }
@@ -148,26 +147,28 @@ class UserRegistrationController {
         const admin = await UserRepository.getUserByEmail('admin@scriza.in');
         if (admin) {
             data.referenceCode = admin.promoCode;
-            admin.numberOfReferals += 1;
+            admin.numberOfReferrals += 1;
             await admin.save();
         }
         return data;
     }
 
-    static async updateReferralUser(referedByUser, data) {
-        referedByUser.numberOfReferals += 1;
+    static async updateReferralUser(referredByUser, data) {
         const perReferalBonus = await AmountSetupRepository.getAmountSetupBySettingName('Per Referal Bonus');
         if (!perReferalBonus) { throw new NotFoundError(`Amount Setting with name "Per Referal Bonus" not found`); }
-        referedByUser.bonusAmount += parseInt(perReferalBonus.value);
-        if (referedByUser.role === "user") { await UserRegistrationController.updateUserReferralCommission(referedByUser); }
-        else if (referedByUser.role === "affiliate") { data.accessiableGames = referedByUser.accessiableGames; }
-        await referedByUser.save();
+        const perReferralAmount = parseInt(perReferalBonus.value);
+        if (referredByUser.role === "user") { await UserRegistrationController.updateUserReferralCommission(referredByUser, perReferralAmount ); }
+        else if (referredByUser.role === "affiliate") { data.accessiableGames = referredByUser.accessiableGames; }
+        await referredByUser.save();
     }
 
-    static async updateUserReferralCommission(user) {
+    static async updateUserReferralCommission(user, perReferralAmount) {
+        user.referralAmount += perReferralAmount;
+        user.lifetimeReferralAmount += perReferralAmount;
+        user.numberOfReferrals += 1;
         const levels = [{ name: 'Level 1 Commission', threshold: 10 }, { name: 'Level 2 Commission', threshold: 5 }, { name: 'Level 3 Commission', threshold: 0 }];
         for (const level of levels) {
-            if (user.numberOfReferals >= level.threshold) {
+            if (user.numberOfReferrals >= level.threshold) {
                 const commission = await AmountSetupRepository.getAmountSetupBySettingName(level.name);
                 if (!commission) { throw new NotFoundError(`Amount Setting with name "${level.name}" not found`); }
                 user.commissionPercentage = parseInt(commission.value);

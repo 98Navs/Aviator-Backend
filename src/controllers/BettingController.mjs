@@ -163,7 +163,7 @@ class BettingController {
     }
 
     static async deductUserAmount(user, amount) {
-        const deductionDetails = ['depositAmount', 'winningsAmount', 'bonusAmount', 'commissionAmount'];
+        const deductionDetails = ['depositAmount', 'winningsAmount', 'bonusAmount', 'commissionAmount', 'referralAmount'];
         let remainingAmount = amount;
         const totalAvailable = deductionDetails.reduce((sum, source) => sum + user[source], 0);
 
