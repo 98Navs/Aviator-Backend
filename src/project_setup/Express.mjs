@@ -16,7 +16,7 @@ export default async function setupExpressApp() {
 
     app.use(express.static('src/public'));
 
-    // Mount user routes
+    // Mount routes
     app.use(UserRoutes);
     app.use(BankFileRoutes);
     app.use(RechargeRoutes);

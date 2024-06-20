@@ -50,7 +50,7 @@ router.get('/getAllUsersDataInCSV', Middleware.admin, UserController.getAllUsers
 router.put('/updateUserByUserId/:userId', Middleware.admin, UserController.updateUserByUserId);
 
 // PUT /Route to update a user image by userId
-router.put('/changeUserImage/:userId', uploadImages.single('image'), UserRegistrationController.changeUserImage);
+router.put('/changeUserImageByUserId/:userId', uploadImages.single('image'), UserRegistrationController.changeUserImage);
 
 // DELETE /Route to delete a user by userId
 router.delete('/updateUserByUserId/:userId', Middleware.admin, UserController.updateUserByUserId);

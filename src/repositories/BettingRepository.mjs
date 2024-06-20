@@ -19,7 +19,7 @@ class BettingRepository {
     static async getBetsAfterCreatedAt(createdAt) { return await Betting.find({ createdAt: { $gt: new Date(createdAt) } }); }
 
     static async getBettingsStats(gameId = null) {
-        const matchTodayStage = gameId ? { createdAt: { $gte: new Date()}, gameId } : { createdAt: { $gte: new Date() } };
+        const matchTodayStage = gameId ? { createdAt: { $gte: new Date().setHours(0, 0, 0, 0) }, gameId } : { createdAt: { $gte: new Date().setHours(0, 0, 0, 0) } };
         const matchAllStage = gameId ? { gameId } : {};
         const aggregateSum = async (matchStage, field) => {
             const result = await Betting.aggregate([ { $match: matchStage }, { $group: { _id: null, total: { $sum: field } } } ]);

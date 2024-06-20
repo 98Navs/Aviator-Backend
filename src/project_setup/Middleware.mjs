@@ -19,7 +19,7 @@ class Middleware {
     }
     static validateRole(roles, message) { return (req, res, next) => Middleware.validateToken(req, res, next, roles, message); }
 
-    //Generate JWT token generation 
+    //Generate JWT token 
     static async generateToken(payload, res) {
         try {
             const token = jwt.sign(payload, process.env.APP_SECRET, { expiresIn: '30d' });

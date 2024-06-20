@@ -39,8 +39,9 @@ class AvailableGamesController {
 
     static async getAllGameNames(req, res) {
         try {
-            const gameNames = await AvailableGamesRepository.getAllGameNames();
-            res.status(200).json({ status: 200, success: true, message: 'Game names fetched successfully', gameNames });
+            const gameNames = await AvailableGamesRepository.getAllAvailableGames(req);
+            const data = gameNames.data.map(game => ({ name: game.name }));
+            res.status(200).json({ status: 200, success: true, message: 'Game names fetched successfully', data });
         } catch (error) {
             CommonHandler.catchError(error, res);
         }
