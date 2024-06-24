@@ -28,7 +28,7 @@ class BankDetailsController {
     static async getUserBankDetailsByUserId(req, res) {
         try {
             const { userId } = req.params;
-            const bankDetails = await BankDetailsRepository.getBankDetailsByUserId(userId);
+            const bankDetails = await BankDetailsController.validateAndFetchUserByUserId(userId);
             res.status(200).json({ status: 200, success: true, message: 'User bank details fetched successfully', data: bankDetails });
         } catch (error) {
             CommonHandler.catchError(error, res);
@@ -38,6 +38,7 @@ class BankDetailsController {
     static async getSaveAsByUserId(req, res) {
         try {
             const { userId } = req.params;
+            await BankDetailsController.validateAndFetchUserByUserId(userId);
             const saveAs = await BankDetailsRepository.getSaveAsByUserId(userId);
             res.status(200).json({ status: 200, success: true, message: 'SaveAs fetched successfully', data: saveAs });
         } catch (error) {
@@ -48,6 +49,7 @@ class BankDetailsController {
     static async getBankDetailsByUserIdAndSaveAs(req, res) {
         try {
             const { userId, saveAs } = req.params;
+            await BankDetailsController.validateAndFetchUserByUserId(userId);
             const bankDetails = await BankDetailsRepository.getBankDetailsByUserIdAndSaveAs(userId, saveAs);
             res.status(200).json({ status: 200, success: true, message: 'Bank deatils fetched succeessfully by userId and saveAs', data: bankDetails });
         } catch (error) {
@@ -72,6 +74,7 @@ class BankDetailsController {
     static async updateBankDetailsByUserIdAndSaveAs(req, res) {
         try {
             const { userId, saveAs } = req.params;
+            await BankDetailsController.validateAndFetchUserByUserId(userId);
             const updatedData = await BankDetailsController.bankDetailsValidation(req, true);
             const updatedBankDetails = await BankDetailsRepository.updateBankDetailsByUserIdAndSaveAs(userId, saveAs, updatedData);
             res.status(200).json({ status: 200, success: true, message: 'Bank details updated successfully', data: updatedBankDetails });
@@ -100,6 +103,13 @@ class BankDetailsController {
     static async validateAndFetchBankByBankId(bankId) {
         await CommonHandler.validateSixDigitIdFormat(bankId);
         const bankDetails = await BankDetailsRepository.getBankDetailsByBankId(bankId);
+        if (!bankDetails) throw new NotFoundError('Bank details not found.');
+        return bankDetails;
+    }
+
+    static async validateAndFetchUserByUserId(userId) {
+        await CommonHandler.validateSixDigitIdFormat(userId);
+        const bankDetails = await BankDetailsRepository.getBankDetailsByUserId(userId);
         if (!bankDetails) throw new NotFoundError('Bank details not found.');
         return bankDetails;
     }
