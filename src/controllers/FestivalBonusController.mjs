@@ -72,7 +72,7 @@ class FestivalBonusController {
 
     //Static Methods Only For This Class (Not To Be Used In Routes)
     static async validateAndFetchFestivalBonusByOfferId(offerId) {
-        if (!/^[0-9]{6}$/.test(offerId)) { throw new ValidationError('Invalid offerId format.'); }
+        await CommonHandler.validateSixDigitIdFormat(offerId);
         const festivalBonus = await FestivalBonusRepository.getFestivalBonusByOfferId(offerId);
         if (!festivalBonus) { throw new NotFoundError('FestivalBonus not found.'); }
         return festivalBonus;

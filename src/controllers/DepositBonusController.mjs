@@ -96,7 +96,7 @@ class DepositBonusController {
 
     // Static Methods Only For This Class (Not To Be Used In Routes)
     static async validateAndFetchDepositBonusByOfferId(offerId) {
-        if (!/^[0-9]{6}$/.test(offerId)) throw new ValidationError('Invalid offerId format.');
+        await CommonHandler.validateSixDigitIdFormat(offerId);
         const depositBonus = await DepositBonusRepository.getDepositBonusByOfferId(offerId);
         if (!depositBonus) throw new NotFoundError('DepositBonus not found.');
         return depositBonus;

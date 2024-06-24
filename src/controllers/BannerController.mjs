@@ -68,7 +68,7 @@ class BannerController {
     
     //Static Methods Only For This Class (Not To Be Used In Routes)
     static async validateAndFetchBannerById(id) {
-        if (!/^[0-9a-fA-F]{24}$/.test(id)) { throw new ValidationError('Invalid Id format.'); }
+        await CommonHandler.validateObjectIdFormat(id);
         const banner = await BannerRepository.getBannerById(id);
         if (!banner) { throw new NotFoundError('Banner not found.'); }
         return banner;

@@ -62,7 +62,7 @@ class AmountSetupController {
 
     // Static Methods Only For This Class (Not To Be Used In Routes)
     static async validateAndFetchAmountSetupById(id) {
-        if (!/^[0-9a-fA-F]{24}$/.test(id)) { throw new ValidationError('Invalid Id format.'); }
+        await CommonHandler.validateObjectIdFormat(id);
         const amountSetup = await AmountSetupRepository.getAmountSetupById(id);
         if (!amountSetup) { throw new NotFoundError('Amount setup not found.'); }
         return amountSetup;

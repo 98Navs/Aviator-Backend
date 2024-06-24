@@ -2,7 +2,7 @@
 import express from "express";
 import cors from "cors";
 import cookieParser from 'cookie-parser';
-import { UserRoutes, FestivalBonusRoutes, DepositBonusRoutes, BankFileRoutes, RechargeRoutes, WithdrawalRoutes, AmountSetupRoutes, BettingRoutes, BannerRoutes, AvailableGamesRoutes, DashboardRoutes } from "../routes/AllRoutes.mjs";
+import { UserRoutes, FestivalBonusRoutes, DepositBonusRoutes, AmountSetupRoutes, BettingRoutes, BannerRoutes, AvailableGamesRoutes, DashboardRoutes, BankDetailsRoutes } from "../routes/AllRoutes.mjs";
 
 export default async function setupExpressApp() {
     const app = express();
@@ -18,16 +18,14 @@ export default async function setupExpressApp() {
 
     // Mount routes
     app.use(UserRoutes);
-    app.use(BankFileRoutes);
-    app.use(RechargeRoutes);
     app.use(FestivalBonusRoutes);
     app.use(DepositBonusRoutes);
     app.use(AmountSetupRoutes);
-    app.use(WithdrawalRoutes);
     app.use(BettingRoutes);
     app.use(BannerRoutes);
     app.use(AvailableGamesRoutes);
     app.use(DashboardRoutes);
+    app.use(BankDetailsRoutes);
 
     // Start the server
     app.listen(process.env.PORT, () => {

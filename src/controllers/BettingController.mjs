@@ -98,7 +98,7 @@ class BettingController {
 
     // Static Methods Only For This Class (Not To Be Used In Routes)
     static async validateAndFetchBettingById(id) {
-        if (!/^[0-9a-fA-F]{24}$/.test(id)) { throw new ValidationError('Invalid Id format.'); }
+        await CommonHandler.validateObjectIdFormat(id);
         const betting = await BettingRepository.getBettingById(id);
         if (!betting) { throw new NotFoundError('Betting ID not found.'); }
         return betting;

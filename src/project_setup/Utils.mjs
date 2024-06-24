@@ -12,11 +12,17 @@ import url from 'url';
 
 //Images uploader
 const FILE_TYPE_MAP = { 'image/png': 'png', 'image/jpeg': 'jpeg', 'image/jpg': 'jpg' };
+
 const getDestination = (req, file, cb) => {
-    const dest = req.url.includes('User') ? 'profileImages' : req.url.includes('Game') ? 'gameImages' : req.url.includes('Banner') ? 'bannerImages' : 'uploads';
+    const dest = req.url.includes('User') ? 'profileImages' :
+        req.url.includes('Game') ? 'gameImages' :
+            req.url.includes('Banner') ? 'bannerImages' :
+                req.url.includes('Bank') ? 'bankQRCode' :
+                    'uploads';
     const isValidFileType = FILE_TYPE_MAP[file.mimetype];
     cb(isValidFileType ? null : new Error('Invalid image type'), `src/public/${dest}`);
 };
+
 const storage = multer.diskStorage({
     destination: getDestination,
     filename: (req, file, cb) => {
@@ -25,6 +31,7 @@ const storage = multer.diskStorage({
         cb(null, fileName);
     }
 });
+
 export const uploadImages = multer({ storage });
 
 //Pagination

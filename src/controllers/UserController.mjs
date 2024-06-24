@@ -142,7 +142,7 @@ class UserController {
 
     //Static Methods Only For This Class (Not To Be Used In Routes)
     static async validateAndFetchUserByUserId(userId) {
-        if (!/^[0-9]{6}$/.test(userId)) { throw new ValidationError('Invalid userId format.'); }
+        await CommonHandler.validateSixDigitIdFormat(userId);
         const user = await UserRepository.getUserByUserId(userId);
         if (!user) { throw new NotFoundError('User not found.'); }
         return user;

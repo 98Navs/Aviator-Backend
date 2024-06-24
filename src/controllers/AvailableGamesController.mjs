@@ -81,7 +81,7 @@ class AvailableGamesController {
 
     //Static Methods Only For This Class (Not To Be Used In Routes)
     static async validateAndFetchAvailableGameByGameId(gameId) {
-        if (!/^[0-9]{6}$/.test(gameId)) { throw new ValidationError('Invalid GameId format.'); }
+        await CommonHandler.validateSixDigitIdFormat(gameId);
         const availableGames = await AvailableGamesRepository.getAvailableGamesByGameId(gameId);
         if (!availableGames) { throw new NotFoundError('Available game not found.'); }
         return availableGames;

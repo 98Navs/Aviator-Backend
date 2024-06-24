@@ -102,7 +102,7 @@ class UserRegistrationController {
         const { userName, email, mobile, password, referenceCode, role, status } = data.body;
 
         if (!isUpdate) { await CommonHandler.validateRequiredFields({ userName, email, mobile, password }); }
-        if (userName) { await CommonHandler.validateUserNameFormat(userName); }
+        if (userName) { await CommonHandler.validateNameFormat(userName); }
         if (userName) { data.body.userName = userName.trim(); }
         if (email) { await CommonHandler.validateEmailFormat(email); }
         if (email) { data.body.email = email.trim(); }
@@ -110,8 +110,8 @@ class UserRegistrationController {
         if (password) { await CommonHandler.validatePasswordFormat(password); }
         if (role) { await CommonHandler.validateRole(role); }
         if (status) { await CommonHandler.validateStatus(status); }
-        if (!isUpdate) { if(data.body.image) data.body.image = `${data.protocol}://${data.get('host')}/profileImages/${data.file.filename}`; }
-        if (isUpdate) { if (data.body.image) { throw new ValidationError('You can not change image with update user API here') }; }
+        if (!isUpdate) { if (data.file) data.body.image = `${data.protocol}://${data.get('host')}/profileImages/${data.file.filename}`; }
+        if (isUpdate) { if (data.file) { throw new ValidationError('You can not change image with update user API here') }; }
 
         if (!isUpdate) {
             await UserRegistrationController.checkExistingUser(data.body.email, mobile);
