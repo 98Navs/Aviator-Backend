@@ -35,7 +35,7 @@ router.get('/getUserByUserId/:userId', Middleware.admin, UserController.getUserB
 router.get('/getAllAffiliateUsers', Middleware.admin, UserController.getAllAffiliateUsers);
 
 // GET /Route to get all sub registered users"
-router.get('/getAllSubRegisteredUsers', Middleware.affiliate, UserController.getAllSubRegisteredUsers);
+router.get('/getAllSubRegisteredUsersByPromoCode', Middleware.affiliate, UserController.getAllSubRegisteredUsersByPromoCode);
 
 // GET /Route to get allowed roles and status types
 router.get('/getAllowedRolesAndStatusTypes', Middleware.admin, UserController.getAllowedRolesAndStatusTypes);
@@ -53,6 +53,6 @@ router.put('/updateUserByUserId/:userId', Middleware.admin, UserController.updat
 router.put('/changeUserImageByUserId/:userId', uploadImages.single('image'), UserRegistrationController.changeUserImage);
 
 // DELETE /Route to delete a user by userId
-router.delete('/updateUserByUserId/:userId', Middleware.admin, UserController.updateUserByUserId);
+router.delete('/deleteUserByUserId/:userId', Middleware.admin, UserController.deleteUserByUserId);
 
 export default router;

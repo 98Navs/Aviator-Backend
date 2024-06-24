@@ -30,6 +30,4 @@ BettingSchema.pre('save', function (next) {
     next();
 });
 
-const Betting = model('Betting', BettingSchema);
-
-export default Betting;
+export default model('Betting', BettingSchema);

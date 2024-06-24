@@ -40,10 +40,10 @@ class UserController {
         }
     }
 
-    static async getAllSubRegisteredUsers(req, res) {
+    static async getAllSubRegisteredUsersByPromoCode(req, res) {
         try {
             const { promoCode } = req.query;
-            const users = await UserRepository.getAllSubRegisteredUsers(promoCode);
+            const users = await UserRepository.getAllSubRegisteredUsersByPromoCode(promoCode);
             const data = users.map(user => ({ userId: user.userId, userName: user.userName }));
             return res.status(200).json({ status: 200, success: true, message: 'Fetched all sub users successfully', data });
         } catch (error) {

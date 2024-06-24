@@ -18,6 +18,4 @@ DepositBonusSchema.set('toJSON', {
     }
 });
 
-const DepositBonus = model('DepositBonus', DepositBonusSchema);
-
-export default DepositBonus;
+export default model('DepositBonus', DepositBonusSchema);

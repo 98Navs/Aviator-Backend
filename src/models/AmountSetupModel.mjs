@@ -14,6 +14,4 @@ AmountSetupSchema.set('toJSON', {
     }
 });
 
-const AmountSetup = model('AmountSetup', AmountSetupSchema);
-
-export default AmountSetup;
+export default model('AmountSetup', AmountSetupSchema);

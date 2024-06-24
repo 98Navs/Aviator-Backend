@@ -8,6 +8,4 @@ const AvailableGamesSchema = new Schema({
     images: [{ type: String, required: true }]
 }, { timestamps: true });
 
-const AvailableGames = model('AvailableGames', AvailableGamesSchema);
-
-export default AvailableGames;
+export default model('AvailableGames', AvailableGamesSchema);

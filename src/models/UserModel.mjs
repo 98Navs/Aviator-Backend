@@ -63,6 +63,4 @@ userSchema.virtual('referralAmountUsed').get(function () { return this.lifetimeR
 
 userSchema.virtual('weightage').get(function () { return ((this.lifetimeProfit - this.lifetimeLoss) / this.playedAmount) * 100; });
 
-const User = model('User', userSchema);
-
-export default User;
+export default model('User', userSchema);

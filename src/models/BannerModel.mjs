@@ -8,6 +8,4 @@ const BannerSchema = new Schema({
     images: [{ type: String, required: true }]
 }, { timestamps: true });
 
-const Banner = model('Banner', BannerSchema);
-
-export default Banner;
+export default model('Banner', BannerSchema);

@@ -19,6 +19,4 @@ FestivalBonusSchema.set('toJSON', {
     }
 });
 
-const FestivalBonus = model('FestivalBonus', FestivalBonusSchema);
-
-export default FestivalBonus;
+export default model('FestivalBonus', FestivalBonusSchema);

@@ -15,7 +15,7 @@ class UserRepository {
 
     static async getUserByPromoCode(promoCode) { return await User.findOne({ promoCode }); }
 
-    static async getAllSubRegisteredUsers(referenceCode) { return await User.find({ referenceCode }); }
+    static async getAllSubRegisteredUsersByPromoCode(referenceCode) { return await User.find({ referenceCode }); }
 
     static async getUserByReferenceCode(promoCode) { return await User.findOne({ promoCode }); }
 
