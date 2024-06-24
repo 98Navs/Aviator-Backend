@@ -19,6 +19,8 @@ class BankDetailsRepository {
     static async updateBankDetailsByBankId(bankId, updateData) { return await BankDetails.findOneAndUpdate({ bankId }, updateData, { new: true }); }
 
     static async deleteBankDetailsByBankId(bankId) { return await BankDetails.findOneAndDelete({ bankId }); }
+
+    static async deleteAllBankDetailsByUserId(userId) { return await BankDetails.deleteMany({ userId }); }
 }
 
 export default BankDetailsRepository;

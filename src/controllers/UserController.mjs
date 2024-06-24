@@ -3,6 +3,7 @@ import { Parser } from 'json2csv';
 import UserRepository from '../repositories/UserRepository.mjs';
 import { CommonHandler, ValidationError, NotFoundError } from './CommonHandler.mjs'
 import UserRegistrationController from './UserRegistrationController.mjs';
+import BankDetailsRepository from '../repositories/BankDetailsRepository.mjs';
 
 class UserController {
     static async getAllUsers(req, res) {
@@ -102,6 +103,7 @@ class UserController {
             const { userId } = req.params;
             await UserController.validateAndFetchUserByUserId(userId);
             const deleteUser = await UserRepository.deleteUserByUserId(userId);
+            await BankDetailsRepository.deleteAllBankDetailsByUserId(userId);
             res.status(200).json({ status: 200, success: true, message: `Data deleted successfully for userId ${userId}`, deleteUser });
         } catch (error) {
             CommonHandler.catchError(error, res);

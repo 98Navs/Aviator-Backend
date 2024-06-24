@@ -17,6 +17,7 @@ class BankDetailsController {
     static async getAdminBankDetails(req, res) {
         try {
             const admin = await UserRepository.getUserByEmail('admin@scriza.in');
+            if (!admin) { throw new NotFoundError('Admin not found in the database with email: admin@scriza.in'); }
             const bankDetails = await BankDetailsRepository.getBankDetailsByUserId(admin.userId);
             res.status(200).json({ status: 200, success: true, message: 'Admin bank details fetched successfully', data: bankDetails });
         } catch (error) {
@@ -116,7 +117,7 @@ class BankDetailsController {
         if (status) if(!CommonHandler.validStatuses.includes(status)) throw new ValidationError(`Status must be one of: ${CommonHandler.validStatuses.join(', ')}`);
         
         const user = await UserRepository.getUserByUserId(userId);
-        if (!user) { throw new NotFoundError(`User with this ${userId} does not found`); }
+        if (!user) { throw new NotFoundError(`User with this userId ${userId} does not found`); }
 
         if (!isUpdate) {
             const bankDetails = await BankDetailsRepository.getBankDetailsByUserId(userId);
