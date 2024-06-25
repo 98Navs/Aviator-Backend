@@ -51,6 +51,7 @@ class BankDetailsController {
             const { userId, saveAs } = req.params;
             await BankDetailsController.validateAndFetchUserByUserId(userId);
             const bankDetails = await BankDetailsRepository.getBankDetailsByUserIdAndSaveAs(userId, saveAs);
+            if (!bankDetails || bankDetails.length === 0) throw new NotFoundError(`Bank details not found for entered saveAs ${saveAs}.`);
             res.status(200).json({ status: 200, success: true, message: 'Bank deatils fetched succeessfully by userId and saveAs', data: bankDetails });
         } catch (error) {
             CommonHandler.catchError(error, res);
