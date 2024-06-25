@@ -127,10 +127,10 @@ class BankDetailsController {
         if (saveAs) await CommonHandler.validateSaveAsFormat(saveAs);
         if (status) if(!CommonHandler.validStatuses.includes(status)) throw new ValidationError(`Status must be one of: ${CommonHandler.validStatuses.join(', ')}`);
         
-        const user = await UserRepository.getUserByUserId(userId);
-        if (!user) { throw new NotFoundError(`User with this userId ${userId} does not found`); }
-
         if (!isUpdate) {
+            const user = await UserRepository.getUserByUserId(userId);
+            if (!user) { throw new NotFoundError(`User with this userId ${userId} does not found`); }
+            
             const bankDetails = await BankDetailsRepository.getBankDetailsByUserId(userId);
             data.body.primary = bankDetails.length > 0 ? 'No' : 'Yes';
             const existingSaveAs = await BankDetailsRepository.getSaveAsByUserId(userId);
