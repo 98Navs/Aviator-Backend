@@ -76,6 +76,8 @@ class BankDetailsController {
         try {
             const { userId, saveAs } = req.params;
             await BankDetailsController.validateAndFetchUserByUserId(userId);
+            const existingSaveAs = await BankDetailsRepository.getSaveAsByUserId(userId);
+            if(!existingSaveAs.includes(saveAs)) throw new NotFoundError(`Entered saveAs: ${saveAs} not found for the mentioned userId ${userId} `)
             const updatedData = await BankDetailsController.bankDetailsValidation(req, true);
             const updatedBankDetails = await BankDetailsRepository.updateBankDetailsByUserIdAndSaveAs(userId, saveAs, updatedData);
             res.status(200).json({ status: 200, success: true, message: 'Bank details updated successfully', data: updatedBankDetails });
@@ -130,7 +132,7 @@ class BankDetailsController {
         if (!isUpdate) {
             const user = await UserRepository.getUserByUserId(userId);
             if (!user) { throw new NotFoundError(`User with this userId ${userId} does not found`); }
-            
+
             const bankDetails = await BankDetailsRepository.getBankDetailsByUserId(userId);
             data.body.primary = bankDetails.length > 0 ? 'No' : 'Yes';
             const existingSaveAs = await BankDetailsRepository.getSaveAsByUserId(userId);
