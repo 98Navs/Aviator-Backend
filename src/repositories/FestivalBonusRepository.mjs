@@ -30,11 +30,8 @@ class FestivalBonusRepository {
         }
         if (filterParams.startDate || filterParams.endDate) {
             query.createdAt = {};
-            if (filterParams.startDate) query.startDate.$gte = new Date(filterParams.startDate);
-            if (filterParams.endDate) {
-                const endDate = new Date(new Date(filterParams.endDate).setHours(23, 59, 59, 999));
-                query.createdAt.$lte = endDate;
-            }
+            if (filterParams.startDate) query.createdAt.$gte = new Date(filterParams.startDate);
+            if (filterParams.endDate) { query.createdAt.$lte = new Date(new Date(filterParams.endDate).setHours(23, 59, 59, 999)); }
         }
         return await paginate(FestivalBonus, query, options.page, options.limit, req);
     }

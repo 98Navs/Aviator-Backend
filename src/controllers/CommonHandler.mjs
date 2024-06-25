@@ -9,20 +9,36 @@ class CommonHandler {
     static validBonusTypes = ['New User Bonus', 'Festival Bonus'];
     static validUserRoles = ['admin', 'user', 'affiliate'];
     static validUserStatuses = ['Active', 'Deactive', 'Suspended'];
+    static validWithdrawalStatuses = ['Approved', 'Pending', 'Rejected'];
 
     //Valid Formats
     static async validateSixDigitIdFormat(id) { if (!/^[0-9]{6}$/.test(id)) { throw new ValidationError('Invalid 6 digit id format.'); } }
+
     static async validateObjectIdFormat(id) { if (!/^[0-9a-fA-F]{24}$/.test(id)) { throw new ValidationError('Invalid Id format.'); } }
+
     static async validateEmailFormat(email) { if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { throw new ValidationError('Invalid email format.'); } }
+
     static async validatePasswordFormat(password) { if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,}$/.test(password)) { throw new ValidationError('Password must contain at least 8 characters, including uppercase, lowercase, numbers, and special characters.'); } }
+
     static async validateNameFormat(userName) { if (!/^[a-zA-Z\s ]{4,}$/.test(userName)) { throw new ValidationError('Invalid userName. Must be at least 4 characters and only letters.'); } }
+
     static async validateMobileFormat(mobile) { if (!/^\d{10}$/.test(mobile)) { throw new ValidationError('Invalid mobile number. Must be 10 digits.'); } }
+
     static async validateRole(role) { if (!CommonHandler.validUserRoles.includes(role)) { throw new ValidationError(`Role must be one of: ${CommonHandler.validUserRoles.join(', ')} without any space.`); } }
+
     static async validateStatus(status) { if (!CommonHandler.validUserStatuses.includes(status)) { throw new ValidationError(`Status must be one of: ${CommonHandler.validUserStatuses.join(', ')} without any space.`); } }
+
     static async validateAccountNumberFormat(accountNumber) { if (!/^\d+$/.test(accountNumber)) { throw new ValidationError('Invalid account number. Must be a number.'); } }
+
     static async validateIfscCodeFormat(ifscCode) { if (!/^[a-zA-Z]{4}0[a-zA-Z0-9]{6}$/.test(ifscCode)) { throw new ValidationError('Invalid IFSC code. Must be in the format of 4 letters followed by 0 and 6 alphanumeric characters in capital letters.'); } }
+
     static async validateUpiIdFormat(upiId) { if (!/^[\w.-]+@[\w.-]+$/.test(upiId)) { throw new ValidationError('Invalid UPI ID format.'); } }
+
     static async validateSaveAsFormat(saveAs) { if (!/^[a-zA-Z0-9\s]{1,}$/.test(saveAs)) { throw new ValidationError('Invalid saveAs. Must be at least 1 characters and only letters numbers and spaces.'); } }
+
+    static async validateWithdrawalStatus(status) { if (!CommonHandler.validWithdrawalStatuses.includes(status)) { throw new ValidationError(`Status must be one of: ${CommonHandler.validWithdrawalStatuses.join(', ')} without any space.`); } }
+    
+    static async validateTransactionFormat(transactionNo) { if (!/^[a-zA-Z0-9]{6,20}$/.test(transactionNo)) { throw new ValidationError('Invalid transaction number. Must be between 6 to 20 characters and only alphanumeric.'); } }
 
     //Password Hashing
     static async hashPassword(password) {

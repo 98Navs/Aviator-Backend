@@ -193,7 +193,7 @@ class BettingController {
             AmountSetupRepository.getAmountSetupBySettingName('Minimum Bet Amount'),
             AmountSetupRepository.getAmountSetupBySettingName('Maximum Bet Amount')
         ]);
-        if (!minAmountSetting || !maxAmountSetting) throw new NotFoundError('One or both of the amount settings not found');
+        if (!minAmountSetting || !maxAmountSetting) throw new NotFoundError('One or both of the amount settings not found for Minimum Bet Amount or Maximum Bet Amount ');
         return [parseInt(minAmountSetting.value), parseInt(maxAmountSetting.value)];
     }
 
