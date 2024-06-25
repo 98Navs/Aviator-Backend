@@ -103,14 +103,14 @@ class BankDetailsController {
     static async validateAndFetchBankByBankId(bankId) {
         await CommonHandler.validateSixDigitIdFormat(bankId);
         const bankDetails = await BankDetailsRepository.getBankDetailsByBankId(bankId);
-        if (!bankDetails) throw new NotFoundError('Bank details not found.');
+        if (!bankDetails) throw new NotFoundError(`Bank details not found for bankId ${bankId}.`);
         return bankDetails;
     }
 
     static async validateAndFetchUserByUserId(userId) {
         await CommonHandler.validateSixDigitIdFormat(userId);
         const bankDetails = await BankDetailsRepository.getBankDetailsByUserId(userId);
-        if (!bankDetails) throw new NotFoundError('Bank details not found.');
+        if (!bankDetails || bankDetails.length === 0) throw new NotFoundError(`Bank details not found for userId ${userId}.`);
         return bankDetails;
     }
 
