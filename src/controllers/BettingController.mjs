@@ -3,6 +3,7 @@ import AmountSetupRepository from '../repositories/AmountSetupRepository.mjs';
 import AvailableGamesRepository from '../repositories/AvailableGamesRepository.mjs';
 import BettingRepository from '../repositories/BettingRepository.mjs';
 import UserRepository from '../repositories/UserRepository.mjs'
+import StatementRepository from '../repositories/StatementRepository.mjs';
 import { CommonHandler, ValidationError, NotFoundError } from './CommonHandler.mjs'
 
 class BettingController {
@@ -118,11 +119,16 @@ class BettingController {
         data.userName = user.userName;
 
         const referenceUser = await UserRepository.getUserByPromoCode(user.referenceCode);
-        await BettingController.processBettingStatus(user, referenceUser, amount, winAmount, status, data);
+
         const gameDetails = await AvailableGamesRepository.getAvailableGamesByGameId(gameId)
+
         if (!gameDetails) { throw new NotFoundError(`Game with this gameId: ${gameId} not found`); }
         data.gameName = gameDetails.name;
+        console.log(data);
+
         if (!user.playedGame.includes(gameDetails.name)) { user.playedGame.push(gameDetails.name); }
+        await BettingController.processBettingStatus(user, referenceUser, amount, winAmount, status, data);
+
         
         await user.save();
 
@@ -136,6 +142,10 @@ class BettingController {
                 await BettingController.updateReferenceUser(referenceUser, amount, 'add');
                 user.playedAmount += amount; 
                 user.lifetimeLoss += amount;
+
+                const createBetAppliedStatement = { userId: user.userId, message: `Hi,${user.userName} you have placed a bet in ${data.gameName} with bettingId: ${data.bettingId}`, amount: amount, category: 'Game', type: 'Debit', status: status };
+                await StatementRepository.createStatement(createBetAppliedStatement);
+
                 break;
             case 'BetCancelled':
                 user.depositAmount += amount;
@@ -143,11 +153,18 @@ class BettingController {
                 user.lifetimeLoss -= amount
                 await BettingController.updateReferenceUser(referenceUser, amount, 'subtract');
                 data.amount = 0;
+
+                const createBetCancelledStatement = { userId: user.userId, message: `Hi,${user.userName} you have cancelled a bet in ${data.gameName} with bettingId: ${data.bettingId}`, amount: amount, category: 'Game', type: 'Credit', status: status };
+                await StatementRepository.createStatement(createBetCancelledStatement);
                 break;
             case 'BetWon':
                 user.winningsAmount += winAmount;
                 user.lifetimeProfit += winAmount;
                 await BettingController.updateReferenceUser(referenceUser, amount, 'subtract');
+
+                const createBetWonStatement = { userId: user.userId, message: `Hi,${user.userName} you have won a bet while playing ${data.gameName} with bettingId: ${data.bettingId}`, amount: winAmount, category: 'Game', type: 'Credit', status: status };
+                await StatementRepository.createStatement(createBetWonStatement);
+
                 break;
             default:
                 throw new ValidationError('Bet Status must be one of: BetApplied, BetCancelled, BetWon');
