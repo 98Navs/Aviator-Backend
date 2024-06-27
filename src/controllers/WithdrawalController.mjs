@@ -4,12 +4,15 @@ import UserRepository from "../repositories/UserRepository.mjs";
 import WithdrawalRepository from "../repositories/WithdrawalRepository.mjs";
 import AmountSetupRepository from '../repositories/AmountSetupRepository.mjs';
 import { CommonHandler, ValidationError, NotFoundError } from './CommonHandler.mjs';
+import StatementRepository from "../repositories/StatementRepository.mjs";
 
 class WithdrawalController {
     static async createWithdrawalByUserIdAndSaveAs(req, res) {
         try {
             const withdrawalData = await WithdrawalController.withdrawalCreateValidation(req);
             const withdrawal = await WithdrawalRepository.createWithdrawal(withdrawalData);
+            const createWithdrawalStatement = { userId: withdrawal.userId, message: `Hi,${withdrawal.userName} your withdrawal request for withdrawalId: ${withdrawal.withdrawalId} has been registered`, amount: withdrawal.amount, category: 'Withdrawal', type: 'Debit', status: withdrawal.status };
+            await StatementRepository.createStatement(createWithdrawalStatement);
             res.status(201).json({ status: 201, success: true, message: 'Withdrawal created successfully', data: withdrawal });
         } catch (error) {
             CommonHandler.catchError(error, res);
@@ -30,17 +33,17 @@ class WithdrawalController {
         }
     }
 
-    static async getWithdrawalById(req, res) {
+    static async getWithdrawalByWithdrawalId(req, res) {
         try {
-            const { id } = req.params;
-            const withdrawal = await WithdrawalController.validateAndFetchWithdrawalById(id);
+            const { withdrawalId } = req.params;
+            const withdrawal = await WithdrawalController.validateAndFetchWithdrawalByWithdrawalId(withdrawalId);
             res.status(200).json({ status: 200, success: true, message: 'Withdrawal fetched successfully', data: withdrawal });
         } catch (error) {
             CommonHandler.catchError(error, res);
         }
     }
 
-    static async updateWithdrawalById(req, res) {
+    static async updateWithdrawalByWithdrawalId(req, res) {
         try {
             const withdrawal = await WithdrawalController.withdrawalUpdateValidation(req);
             res.status(200).json({ status: 200, success: true, message: 'Withdrawal status updated successfully', data: withdrawal });
@@ -49,11 +52,11 @@ class WithdrawalController {
         }
     }
 
-    static async deleteWithdrawalById(req, res) {
+    static async deleteWithdrawalByWithdrawalId(req, res) {
         try {
-            const { id } = req.params;
-            await WithdrawalController.validateAndFetchWithdrawalById(id);
-            const deletedWithdrawal = await WithdrawalRepository.deleteWithdrawalById(id);
+            const { withdrawalId } = req.params;
+            await WithdrawalController.validateAndFetchWithdrawalByWithdrawalId(withdrawalId);
+            const deletedWithdrawal = await WithdrawalRepository.deleteWithdrawalByWithdrawalId(withdrawalId);
             res.status(200).json({ status: 200, success: true, message: 'Withdrawal deleted successfully', data: deletedWithdrawal });
         } catch (error) {
             CommonHandler.catchError(error, res);
@@ -61,10 +64,10 @@ class WithdrawalController {
     }
 
     // Static Methods Only For This Class (Not To Be Used In Routes)
-    static async validateAndFetchWithdrawalById(id) {
-        await CommonHandler.validateObjectIdFormat(id);
-        const withdrawal = await WithdrawalRepository.getWithdrawalById(id);
-        if (!withdrawal) { throw new NotFoundError(`Withdrawal with ID ${id} not found`); }
+    static async validateAndFetchWithdrawalByWithdrawalId(withdrawalId) {
+        await CommonHandler.validateSixDigitIdFormat(withdrawalId);
+        const withdrawal = await WithdrawalRepository.getWithdrawalByWithdrawalId(withdrawalId);
+        if (!withdrawal) { throw new NotFoundError(`Withdrawal with withdrawalId ${withdrawalId} not found`); }
         return withdrawal;
     }
 
@@ -95,21 +98,30 @@ class WithdrawalController {
     }
 
     static async withdrawalUpdateValidation(data) {
-        const { id } = data.params;
+        const { withdrawalId } = data.params;
         const { transactionNo, status } = data.body;
 
-        await WithdrawalController.validateAndFetchWithdrawalById(id);
-        await CommonHandler.validateRequiredFields({ transactionNo, status });
+        await WithdrawalController.validateAndFetchWithdrawalByWithdrawalId(withdrawalId);
+        if (status === 'Approved') { await CommonHandler.validateRequiredFields({ transactionNo, status }); }
+        else { await CommonHandler.validateRequiredFields({ status }); }
         await CommonHandler.validateTransactionFormat(transactionNo);
         await CommonHandler.validateRechargeAndWithdrawalStatus(status);
 
-        const updatedWithdrawal = await WithdrawalRepository.updateWithdrawalById(id, { transactionNo, status });
+        const updatedWithdrawal = await WithdrawalRepository.updateWithdrawalByWithdrawalId(withdrawalId , { transactionNo, status });
 
         const user = await UserRepository.getUserByUserId(updatedWithdrawal.userId);
         if (!user) { throw new NotFoundError(`User with userId: ${updatedWithdrawal.userId} does not exist`); }
 
-        if (status === 'Rejected') { user.winningsAmount += updatedWithdrawal.amount; }
-        else { user.lifetimeWithdrawalAmount += updatedWithdrawal.amount; }
+        if (status === 'Approved') {
+            user.lifetimeWithdrawalAmount += updatedWithdrawal.amount;
+            const createWithdrawalStatement = { userId: user.userId, message: `Hi,${user.userName} your withdrawal request for withdrawalId: ${withdrawalId} has been approved`, amount: updatedWithdrawal.amount, category: 'Withdrawal', type: 'Debit', status: status };
+            await StatementRepository.createStatement(createWithdrawalStatement);
+        }
+        else {
+            user.winningsAmount += updatedWithdrawal.amount;
+            const createWithdrawalStatement = { userId: user.userId,  message: `Hi,${user.userName} your withdrawal request for withdrawalId: ${withdrawalId} has been rejected`, amount: updatedWithdrawal.amount, category: 'Withdrawal', status: status };
+            await StatementRepository.createStatement(createWithdrawalStatement);
+        }
         await user.save();
 
         return updatedWithdrawal;

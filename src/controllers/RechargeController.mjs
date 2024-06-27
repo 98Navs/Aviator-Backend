@@ -1,8 +1,9 @@
 // src/controllers/RechargeController.mjs
-import RechargeRepository from '../repositories/RechargeRepository.mjs'
+import RechargeRepository from '../repositories/RechargeRepository.mjs';
 import UserRepository from "../repositories/UserRepository.mjs";
 import AmountSetupRepository from '../repositories/AmountSetupRepository.mjs';
-import DepositBonusRepository from '../repositories/DepositBonusRepository.mjs'
+import DepositBonusRepository from '../repositories/DepositBonusRepository.mjs';
+import StatementRepository from '../repositories/StatementRepository.mjs';
 import { CommonHandler, ValidationError, NotFoundError } from './CommonHandler.mjs';
 
 class RechargeController {
@@ -10,6 +11,8 @@ class RechargeController {
         try {
             const rechargeData = await RechargeController.rechargeCreateValidation(req);
             const recharge = await RechargeRepository.createRecharge(rechargeData);
+            const createRechargeStatement = { userId: recharge.userId, message: `Hi,${recharge.userName} your recharge request for rechargeId: ${recharge.rechargeId} has been registered`, amount: recharge.amount, category: 'Recharge', type: 'Credit', status: recharge.status };
+            await StatementRepository.createStatement(createRechargeStatement);
             res.status(201).json({ status: 201, success: true, message: 'Recharge created successfully', data: recharge });
         } catch (error) {
             CommonHandler.catchError(error, res);
@@ -30,17 +33,17 @@ class RechargeController {
         }
     }
 
-    static async getRechargeById(req, res) {
+    static async getRechargeByRechargeId(req, res) {
         try {
-            const { id } = req.params;
-            const recharge = await RechargeController.validateAndFetchRechargeById(id);
+            const { rechargeId } = req.params;
+            const recharge = await RechargeController.validateAndFetchRechargeByRechargeId(rechargeId);
             res.status(200).json({ status: 200, success: true, message: 'Recharge fetched successfully', data: recharge });
         } catch (error) {
             CommonHandler.catchError(error, res);
         }
     }
 
-    static async updateRechargeById(req, res) {
+    static async updateRechargeByRechargeId(req, res) {
         try {
             const updateRecharge = await RechargeController.rechargeUpdateValidation(req);
             res.status(200).json({ status: 200, success: true, message: 'Recharge status updated successfully', data: updateRecharge });
@@ -49,11 +52,11 @@ class RechargeController {
         }
     }
 
-    static async deleteRechargeById(req, res) {
+    static async deleteRechargeByRechargeId(req, res) {
         try {
-            const { id } = req.params;
-            await RechargeController.validateAndFetchRechargeById(id);
-            const deletedRecharge = await RechargeRepository.deleteRechargeById(id);
+            const { rechargeId } = req.params;
+            await RechargeController.validateAndFetchRechargeByRechargeId(rechargeId);
+            const deletedRecharge = await RechargeRepository.deleteRechargeByRechargeId(id);
             res.status(200).json({ status: 200, success: true, message: 'Recharge deleted successfully', data: deletedRecharge });
         } catch (error) {
             CommonHandler.catchError(error, res);
@@ -61,10 +64,10 @@ class RechargeController {
     }
 
     // Static Methods Only For This Class (Not To Be Used In Routes)
-    static async validateAndFetchRechargeById(id) {
-        await CommonHandler.validateObjectIdFormat(id);
-        const recharge = await RechargeRepository.getRechargeById(id);
-        if (!recharge) { throw new NotFoundError(`Recharge with ID ${id} not found`); }
+    static async validateAndFetchRechargeByRechargeId(rechargeId) {
+        await CommonHandler.validateSixDigitIdFormat(rechargeId);
+        const recharge = await RechargeRepository.getRechargeByRechargeId(rechargeId);
+        if (!recharge) { throw new NotFoundError(`Recharge with rechargeId: ${rechargeId} not found`); }
         return recharge;
     }
 
@@ -90,26 +93,37 @@ class RechargeController {
     }
 
     static async rechargeUpdateValidation(data) {
-        const { id } = data.params;
+        const { rechargeId } = data.params;
         const { status } = data.body;
 
         await CommonHandler.validateRequiredFields({ status });
         await CommonHandler.validateRechargeAndWithdrawalStatus(status);
 
+        const recharge = await RechargeController.validateAndFetchRechargeByRechargeId(rechargeId);
+        const user = await UserRepository.getUserByUserId(recharge.userId);
+        if (!user) { throw new NotFoundError(`User with userId: ${recharge.userId} does not exist`); }
+
         let bonusAmount = 0;
         if (status === 'Approved') {
-            const recharge = await RechargeController.validateAndFetchRechargeById(id);
             const depositBonus = await DepositBonusRepository.getDepositBonusesByDate(recharge.createdAt, recharge.amount);
             bonusAmount = depositBonus ? recharge.amount * depositBonus.deal / 100 : 0;
             
-            const user = await UserRepository.getUserByUserId(recharge.userId);
-            if (!user) { throw new NotFoundError(`User with userId: ${recharge.userId} does not exist`); }
             user.depositAmount += recharge.amount;
             user.bonusAmount += bonusAmount;
             user.lifetimeBonusAmount += bonusAmount;
             await user.save();
+
+            const createRechargeStatement = { userId: user.userId, message: `Hi,${user.userName} your recharge request for rechargeId: ${rechargeId} is successfull`, amount: recharge.amount, category: 'Recharge', type: 'Credit', status: status };
+            await StatementRepository.createStatement(createRechargeStatement);
+            if (bonusAmount) {
+                const bonusStatement = { userId: user.userId, message: `Hi,${user.userName} your bonus for rechargeId: ${rechargeId} has been creadit`, amount: bonusAmount, category: 'Deposit Bonus', type: 'Credit', status: status };
+                await StatementRepository.createStatement(bonusStatement);
+            }
+        } else {
+            const createRechargeStatement = { userId: user.userId, message: `Hi,${user.userName} your recharge request for rechargeId: ${rechargeId} has been rejected`, amount: recharge.amount, category: 'Recharge', status: status };
+            await StatementRepository.createStatement(createRechargeStatement);
         }
-        const updateRecharge = await RechargeRepository.updateRechargeById(id, { status, bonusAmount });
+        const updateRecharge = await RechargeRepository.updateRechargeByRechargeId(rechargeId, { status, bonusAmount });
 
         return updateRecharge;
     }

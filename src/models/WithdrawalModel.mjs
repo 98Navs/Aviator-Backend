@@ -10,6 +10,7 @@ const BankDetailsSchema = {
 };
 
 const WithdrawalSchema = new Schema({
+    withdrawalId: { type: Number, default: () => Math.floor(100000 + Math.random() * 900000), unique: true },
     userId: { type: Number, required: true },
     userName: { type: String, required: true },
     transactionNo: { type: String, default: 'Admin Input Required' },

@@ -8,7 +8,7 @@ class RechargeRepository {
 
     static async getAllRecharges(options, req) { return await paginate(Recharge, {}, options.page, options.limit, req); }
 
-    static async getRechargeById(id) { return await Recharge.findById(id); }
+    static async getRechargeByRechargeId(rechargeId) { return await Recharge.findOne({ rechargeId }); }
 
     static async getRechargeDashboardStats() {
         const aggregateStats = async (matchStage) => {
@@ -22,9 +22,9 @@ class RechargeRepository {
         return data;
     }
 
-    static async updateRechargeById(id, status) { return await Recharge.findByIdAndUpdate(id, status, { new: true }); }
+    static async updateRechargeByRechargeId(rechargeId, status) { return await Recharge.findOneAndUpdate({rechargeId}, status, { new: true }); }
 
-    static async deleteRechargeById(id) { return await Recharge.findByIdAndDelete(id); }
+    static async deleteRechargeByRechargeId(rechargeId) { return await Recharge.findOneAndDelete({rechargeId}); }
 
     static async filterRecharges(filterParams, options, req) {
         const query = {};
@@ -34,6 +34,7 @@ class RechargeRepository {
             const searchRegex = new RegExp(`^${filterParams.search}`, 'i');
             query.$or = [
                 { $expr: { $regexMatch: { input: { $toString: "$userId" }, regex: searchRegex } } },
+                { $expr: { $regexMatch: { input: { $toString: "$rechargeId" }, regex: searchRegex } } },
                 { userName: searchRegex }
             ];
         }

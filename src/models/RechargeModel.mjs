@@ -2,6 +2,7 @@
 import { Schema, model } from 'mongoose';
 
 const RechargeSchema = new Schema({
+    rechargeId: { type: Number, default: () => Math.floor(100000 + Math.random() * 900000), unique: true },
     userId: { type: Number, required: true },
     userName: { type: String, required: true },
     transactionNo: { type: String, required: true },

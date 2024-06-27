@@ -8,7 +8,7 @@ class WithdrawalRepository {
 
     static async getAllWithdrawals(options, req) { return await paginate(Withdrawal, {}, options.page, options.limit, req); }
     
-    static async getWithdrawalById(id) { return await Withdrawal.findById(id); }
+    static async getWithdrawalByWithdrawalId(withdrawalId) { return await Withdrawal.findOne({ withdrawalId }); }
 
     static async getWithdrawalDashboardStats() {
         const aggregateStats = async (matchStage) => {
@@ -22,9 +22,9 @@ class WithdrawalRepository {
         return data;
     }
 
-    static async updateWithdrawalById(id, updateData) { return await Withdrawal.findByIdAndUpdate(id, updateData, { new: true }); }
+    static async updateWithdrawalByWithdrawalId(withdrawalId, updateData) { return await Withdrawal.findOneAndUpdate({ withdrawalId }, updateData, { new: true }); }
 
-    static async deleteWithdrawalById(id) { return await Withdrawal.findByIdAndDelete(id); }
+    static async deleteWithdrawalByWithdrawalId(withdrawalId) { return await Withdrawal.findOneAndDelete({ withdrawalId }); }
 
     static async filterWithdrawals(filterParams, options, req) {
         const query = {};

@@ -10,6 +10,8 @@ class CommonHandler {
     static validUserRoles = ['admin', 'user', 'affiliate'];
     static validUserStatuses = ['Active', 'Deactive', 'Suspended'];
     static validRechargeAndWithdrawalStatuses = ['Approved', 'Pending', 'Rejected'];
+    static validCreaditDebit = ['Credit', 'Debit'];
+    static validStatementCategory = ['Recharge', 'Withdrawal', 'Betting', 'Deposit Bonus', 'Festival Bonus', 'New User Bonus'];
 
     //Valid Formats
     static async validateSixDigitIdFormat(id) { if (!/^[0-9]{6}$/.test(id)) { throw new ValidationError('Invalid 6 digit id format.'); } }
@@ -39,6 +41,11 @@ class CommonHandler {
     static async validateRechargeAndWithdrawalStatus(status) { if (!CommonHandler.validRechargeAndWithdrawalStatuses.includes(status)) { throw new ValidationError(`Status must be one of: ${CommonHandler.validRechargeAndWithdrawalStatuses.join(', ')} without any space.`); } }
 
     static async validateTransactionFormat(transactionNo) { if (!/^[a-zA-Z0-9]{6,20}$/.test(transactionNo)) { throw new ValidationError('Invalid transaction number. Must be between 6 to 20 characters and only alphanumeric.'); } }
+
+    static async validateCreditDebit(type) { if (!CommonHandler.validCreaditDebit.includes(type)) { throw new ValidationError(`Type must be one of: ${CommonHandler.validCreaditDebit.join(', ')} without any space.`); } }
+
+    static async validateStatementCategory(category) { if (!CommonHandler.validStatementCategory.includes(category)) { throw new ValidationError(`Category must be one of: ${CommonHandler.validStatementCategory.join(', ')} without any space.`); } }
+
 
     //Password Hashing
     static async hashPassword(password) {

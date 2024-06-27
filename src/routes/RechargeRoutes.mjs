@@ -11,13 +11,13 @@ router.post('/createRechargeByUserId/:userId', uploadImages.single('paymentProof
 // GET /Route to get all the recharges
 router.get('/getAllRecharges', RechargeController.getAllRecharges);
 
-// GET /Route to get a recharge by Id
-router.get('/getRechargeById/:id', RechargeController.getRechargeById);
+// GET /Route to get a recharge by rechargeId
+router.get('/getRechargeByRechargeId/:rechargeId', RechargeController.getRechargeByRechargeId);
 
-// PUT /Route to update a recharge by Id
-router.put('/updateRechargeById/:id', RechargeController.updateRechargeById);
+// PUT /Route to update a recharge by rechargeId
+router.put('/updateRechargeByRechargeId/:rechargeId', RechargeController.updateRechargeByRechargeId);
 
-// DELET /Route to delete a recharge by Id
-router.delete('/deleteRechargeById/:id', RechargeController.deleteRechargeById);
+// DELET /Route to delete a recharge by rechargeId
+router.delete('/deleteRechargeByRechargeId/:rechargeId', RechargeController.deleteRechargeByRechargeId);
 
 export default router;

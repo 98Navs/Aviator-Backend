@@ -10,13 +10,13 @@ router.post('/createWithdrawalByUserIdAndSaveAs/:userId/:saveAs', WithdrawalCont
 // GET /Route to get all the withdrawals
 router.get('/getAllWithdrawals', WithdrawalController.getAllWithdrawals);
 
-// GET /Route to get a withdrawal by Id
-router.get('/getWithdrawalById/:id', WithdrawalController.getWithdrawalById);
+// GET /Route to get a withdrawal by withdrawalId
+router.get('/getWithdrawalByWithdrawalId/:withdrawalId', WithdrawalController.getWithdrawalByWithdrawalId);
 
-// PUT /Route to update a withdrawal by Id
-router.put('/updateWithdrawalById/:id', WithdrawalController.updateWithdrawalById);
+// PUT /Route to update a withdrawal by withdrawalId
+router.put('/updateWithdrawalByWithdrawalId/:withdrawalId', WithdrawalController.updateWithdrawalByWithdrawalId);
 
-// DELET /Route to delete a withdrawal by Id
-router.delete('/deleteWithdrawalById/:id', WithdrawalController.deleteWithdrawalById);
+// DELET /Route to delete a withdrawal by withdrawalId
+router.delete('/deleteWithdrawalByWithdrawalId/:withdrawalId', WithdrawalController.deleteWithdrawalByWithdrawalId);
 
 export default router;
