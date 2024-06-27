@@ -12,7 +12,7 @@ const BankDetailsSchema = {
 const WithdrawalSchema = new Schema({
     userId: { type: Number, required: true },
     userName: { type: String, required: true },
-    transactionNo: { type: String, required: true },
+    transactionNo: { type: String, default: 'Admin Input Required' },
     amount: { type: Number, required: true },
     bankDetails: BankDetailsSchema,
     status: { type: String, default: 'Pending' }

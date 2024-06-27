@@ -9,6 +9,8 @@ class DepositBonusRepository {
 
     static async getDepositBonusByOfferId(offerId) { return await DepositBonus.findOne({ offerId }); }
 
+    static async getDepositBonusesByDate(date, amount) { return await DepositBonus.findOne({ $and: [{ startDate: { $lte: date } }, { endDate: { $gte: date } }, { amount: { $lte: amount } }] }).sort({ amount: -1 }); } 
+    
     static async updateDepositBonusByOfferId(offerId, depositBonusData) { return await DepositBonus.findOneAndUpdate({ offerId }, depositBonusData, { new: true }); }
 
     static async deleteDepositBonusByOfferId(offerId) { return await DepositBonus.findOneAndDelete({ offerId }); }

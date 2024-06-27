@@ -8,7 +8,7 @@ import { CommonHandler, ValidationError, NotFoundError } from './CommonHandler.m
 class WithdrawalController {
     static async createWithdrawalByUserIdAndSaveAs(req, res) {
         try {
-            const withdrawalData = await WithdrawalController.withdrawalValidation(req);
+            const withdrawalData = await WithdrawalController.withdrawalCreateValidation(req);
             const withdrawal = await WithdrawalRepository.createWithdrawal(withdrawalData);
             res.status(201).json({ status: 201, success: true, message: 'Withdrawal created successfully', data: withdrawal });
         } catch (error) {
@@ -18,9 +18,9 @@ class WithdrawalController {
 
     static async getAllWithdrawals(req, res) {
         try {
-            const { search, startDate, status, endDate, pageNumber = 1, perpage = 10 } = req.query;
+            const { status, search, startDate, endDate, pageNumber = 1, perpage = 10 } = req.query;
             const options = { page: Number(pageNumber), limit: Number(perpage) };
-            const filterParams = { search, status, startDate, endDate };
+            const filterParams = { status, search, startDate, endDate };
             const withdrawals = Object.keys(filterParams).length > 0 ?
                 await WithdrawalRepository.filterWithdrawals(filterParams, options, req) :
                 await WithdrawalRepository.getAllWithdrawals(options, req);
@@ -40,17 +40,10 @@ class WithdrawalController {
         }
     }
 
-    static async updateWithdrawalByIdAndStatus(req, res) {
+    static async updateWithdrawalById(req, res) {
         try {
-            const { id, status } = req.query;
-            await Promise.all ([CommonHandler.validateWithdrawalStatus(status), WithdrawalController.validateAndFetchWithdrawalById(id)]);
-            const updatedWithdrawal = await WithdrawalRepository.updateWithdrawalById(id, { status });
-            const user = await UserRepository.getUserByUserId(updatedWithdrawal.userId);
-            if (!user) { throw new NotFoundError(`User with userId: ${updatedWithdrawal.userId} does not exist`); }
-            if ( status === 'Rejected') { user.winningsAmount += updatedWithdrawal.amount; }
-            else { user.lifetimeWithdrawalAmount += updatedWithdrawal.amount; }
-            await user.save();
-            res.status(200).json({ status: 200, success: true, message: 'Withdrawal status updated successfully', data: updatedWithdrawal });
+            const withdrawal = await WithdrawalController.withdrawalUpdateValidation(req);
+            res.status(200).json({ status: 200, success: true, message: 'Withdrawal status updated successfully', data: withdrawal });
         } catch (error) {
             CommonHandler.catchError(error, res);
         }
@@ -75,13 +68,12 @@ class WithdrawalController {
         return withdrawal;
     }
 
-    static async withdrawalValidation(data) {
-        const { transactionNo, amount } = data.body;
+    static async withdrawalCreateValidation(data) {
+        const { amount } = data.body;
         const { userId, saveAs } = data.params;
 
-        await CommonHandler.validateRequiredFields({ transactionNo, amount });
+        await CommonHandler.validateRequiredFields({ amount });
         await CommonHandler.validateSixDigitIdFormat(userId);
-        await CommonHandler.validateTransactionFormat(transactionNo);
 
         const existingUser = await UserRepository.getUserByUserId(userId);
         if (!existingUser) { throw new NotFoundError(`User with userId: ${userId} does not exist`); }
@@ -91,7 +83,7 @@ class WithdrawalController {
 
         const bankDetails = await BankDetailsRepository.getBankDetailsByUserIdAndSaveAs(userId, saveAs);
         if (!bankDetails) { throw new NotFoundError(`Bank details not found for userId ${userId} and saveAs ${saveAs}`); }
-        
+
         data.body.userId = existingUser.userId;
         data.body.userName = existingUser.userName;
         data.body.bankDetails = { bankName: bankDetails.bankName, accountNumber: bankDetails.accountNumber, ifscCode: bankDetails.ifscCode, upiId: bankDetails.upiId, mobile: bankDetails.mobile };
@@ -102,8 +94,29 @@ class WithdrawalController {
         return data.body;
     }
 
+    static async withdrawalUpdateValidation(data) {
+        const { id } = data.params;
+        const { transactionNo, status } = data.body;
+
+        await WithdrawalController.validateAndFetchWithdrawalById(id);
+        await CommonHandler.validateRequiredFields({ transactionNo, status });
+        await CommonHandler.validateTransactionFormat(transactionNo);
+        await CommonHandler.validateRechargeAndWithdrawalStatus(status);
+
+        const updatedWithdrawal = await WithdrawalRepository.updateWithdrawalById(id, { transactionNo, status });
+
+        const user = await UserRepository.getUserByUserId(updatedWithdrawal.userId);
+        if (!user) { throw new NotFoundError(`User with userId: ${updatedWithdrawal.userId} does not exist`); }
+
+        if (status === 'Rejected') { user.winningsAmount += updatedWithdrawal.amount; }
+        else { user.lifetimeWithdrawalAmount += updatedWithdrawal.amount; }
+        await user.save();
+
+        return updatedWithdrawal;
+    }
+
     static async getWithdrawalLimits() {
-        const [minWithdrawal, maxWithdrawal] = await Promise.all([AmountSetupRepository.getAmountSetupBySettingName('Minimum Withdrawal'), AmountSetupRepository.getAmountSetupBySettingName('Maximum Withdrawl') ]);
+        const [minWithdrawal, maxWithdrawal] = await Promise.all([AmountSetupRepository.getAmountSetupBySettingName('Minimum Withdrawal'), AmountSetupRepository.getAmountSetupBySettingName('Maximum Withdrawl')]);
         if (!minWithdrawal || !maxWithdrawal) { throw new NotFoundError('One or both of the withdrawal amount settings not  found for Minimum Withdrawal or Maximum Withdrawal'); }
         return [parseInt(minWithdrawal.value), parseInt(maxWithdrawal.value)];
     }

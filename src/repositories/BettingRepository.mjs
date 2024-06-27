@@ -8,9 +8,9 @@ class BettingRepository {
     static async getAllBetting(options, req) { return await paginate(Betting, {}, options.page, options.limit, req); }
 
     static async getBettingById(id) { return await Betting.findById(id); }
-    
+
     static async getCountAndBetsByBettingId(gameId, bettingId) {
-        const [count, bettings] = await Promise.all([ Betting.countDocuments({ gameId, bettingId }), Betting.find({ gameId, bettingId }) ]);
+        const [count, bettings] = await Promise.all([Betting.countDocuments({ gameId, bettingId }), Betting.find({ gameId, bettingId })]);
         return { count, bettings };
     }
 
@@ -22,7 +22,7 @@ class BettingRepository {
         const matchTodayStage = gameId ? { createdAt: { $gte: new Date().setHours(0, 0, 0, 0) }, gameId } : { createdAt: { $gte: new Date().setHours(0, 0, 0, 0) } };
         const matchAllStage = gameId ? { gameId } : {};
         const aggregateSum = async (matchStage, field) => {
-            const result = await Betting.aggregate([ { $match: matchStage }, { $group: { _id: null, total: { $sum: field } } } ]);
+            const result = await Betting.aggregate([{ $match: matchStage }, { $group: { _id: null, total: { $sum: field } } }]);
             return result.length > 0 ? result[0].total : 0;
         };
         const [todayAmount, totalAmount, todayWinAmount, totalWinAmount] = await Promise.all([aggregateSum(matchTodayStage, '$amount'), aggregateSum(matchAllStage, '$amount'), aggregateSum(matchTodayStage, '$winAmount'), aggregateSum(matchAllStage, '$winAmount')]);
@@ -30,19 +30,25 @@ class BettingRepository {
         return data;
     }
 
-    static async getDashboardStats() {
+    static async getBettingDashboardStats() {
         const aggregateStats = async (matchStage) => {
-            const [result] = await Betting.aggregate([ { $match: matchStage }, { $group: { _id: null, totalAmount: { $sum: '$amount' }, totalWinAmount: { $sum: '$winAmount' } } } ]);
-            return result ? { totalAmount: result.totalAmount, totalWinAmount: result.totalWinAmount, profit: result.totalAmount - result.totalWinAmount } : { totalAmount: 0, totalWinAmount: 0, profit: 0 };
+            const result = await Betting.aggregate([{ $match: { ...matchStage, status: { $in: ['BetApplied', 'BetWon'] } } }, { $group: { _id: null, totalAmount: { $sum: '$amount' }, totalWinAmount: { $sum: '$winAmount' } } } ]);
+            const { totalAmount = 0, totalWinAmount = 0 } = result[0] || {};
+            const profit = totalAmount - totalWinAmount;
+            return { totalAmount, totalWinAmount, profit };
         };
-        const [todayStats, totalStats] = await Promise.all([aggregateStats({ createdAt: { $gte: new Date() } }), aggregateStats({})]);
-        const data = { todayAmount: todayStats.totalAmount, totalAmount: totalStats.totalAmount, todayWinAmount: todayStats.totalWinAmount, totalWinAmount: totalStats.totalWinAmount, todayProfit: todayStats.profit, totalProfit: totalStats.profit };
+        const todayStart = new Date();
+        todayStart.setUTCHours(0, 0, 0, 0);
+        const [todayStats, totalStats] = await Promise.all([ aggregateStats({ createdAt: { $gte: todayStart, $lt: new Date(todayStart.getTime() + 86400000) } }), aggregateStats({})]);
+        const defaultStats = { totalAmount: 0, totalWinAmount: 0, profit: 0 };
+        const formatStats = (stats) => ({ totalAmount: stats.totalAmount || defaultStats.totalAmount, totalWinAmount: stats.totalWinAmount || defaultStats.totalWinAmount, profit: stats.profit || defaultStats.profit });
+        const data = { todayAmount: formatStats(todayStats).totalAmount, totalAmount: formatStats(totalStats).totalAmount, todayWinAmount: formatStats(todayStats).totalWinAmount, totalWinAmount: formatStats(totalStats).totalWinAmount, todayProfit: formatStats(todayStats).profit, totalProfit: formatStats(totalStats).profit }
         return data;
     }
 
     static async getGraphStats(startDate, endDate) {
         const matchStage = { createdAt: { $gte: new Date(startDate), $lte: new Date(new Date(endDate).setHours(23, 59, 59, 999)) } };
-        const aggregateStats = (format) => { return Betting.aggregate([ { $match: matchStage }, { $group: { _id: { $dateToString: { format, date: '$createdAt' } }, totalAmount: { $sum: '$amount' }, totalWinAmount: { $sum: '$winAmount' }, totalProfit: { $sum: { $subtract: ['$amount', '$winAmount'] } } } }, { $sort: { _id: 1 } } ]); };
+        const aggregateStats = (format) => { return Betting.aggregate([{ $match: matchStage }, { $group: { _id: { $dateToString: { format, date: '$createdAt' } }, totalAmount: { $sum: '$amount' }, totalWinAmount: { $sum: '$winAmount' }, totalProfit: { $sum: { $subtract: ['$amount', '$winAmount'] } } } }, { $sort: { _id: 1 } }]); };
         const dailyStats = aggregateStats('%Y-%m-%d');
         const weeklyStats = aggregateStats('%Y-%U');
         const monthlyStats = aggregateStats('%Y-%m');
@@ -56,7 +62,7 @@ class BettingRepository {
         return await betting.save();
     }
 
-    static async deleteBettingById(id) { return await Betting.findByIdAndDelete( id ); }
+    static async deleteBettingById(id) { return await Betting.findByIdAndDelete(id); }
 
     static async filterBetting(filterParams, options, req) {
         const query = {};

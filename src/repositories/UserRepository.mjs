@@ -33,16 +33,23 @@ class UserRepository {
         const query = { role };
         return await paginate(User, query, options.page, options.limit, req);
     }
+
+    static async getUserDashboardStats() {
+        const today = new Date().setHours(0, 0, 0, 0);
+        const [usersCreatedToday, totalUsers, todayAffiliates, totalAffiliates] = await Promise.all([ User.countDocuments({ createdAt: { $gte: today } }), User.countDocuments({}), User.countDocuments({ role: 'affiliate', createdAt: { $gte: today } }), User.countDocuments({ role: 'affiliate' }) ]);
+        const data = { usersCreatedToday, totalUsers, todayAffiliates, totalAffiliates };
+        return data;
+    }
     
     static async updateUserByUserId(userId, userData) { return await User.findOneAndUpdate({ userId }, userData, { new: true }); }
 
     static async updateUserImageByUserId(userId, newImagePath) {
-            const user = await User.findOne({ userId });
-            const imagePath = path.join('src/public/profileImages', path.basename(user.image));
-            await fs.promises.unlink(imagePath).catch(err => { if (err.code !== 'ENOENT') throw err; });
-            user.image = newImagePath;
-            await user.save();
-            return user;
+        const user = await User.findOne({ userId });
+        const imagePath = path.join('src/public/profileImages', path.basename(user.image));
+        await fs.promises.unlink(imagePath).catch(err => { if (err.code !== 'ENOENT') throw err; });
+        user.image = newImagePath;
+        await user.save();
+        return user;
     }
 
     static async deleteUserByUserId(userId) {

@@ -10,7 +10,19 @@ class WithdrawalRepository {
     
     static async getWithdrawalById(id) { return await Withdrawal.findById(id); }
 
-    static async updateWithdrawalById(id, status) { return await Withdrawal.findByIdAndUpdate(id, status, { new: true }); }
+    static async getWithdrawalDashboardStats() {
+        const aggregateStats = async (matchStage) => {
+            const [result] = await Withdrawal.aggregate([{ $match: { ...matchStage, status: 'Approved' } }, { $group: { _id: null, totalWithdrawalAmount: { $sum: '$amount' } } }]);
+            return result ? { totalWithdrawalAmount: result.totalWithdrawalAmount } : { totalWithdrawalAmount: 0 };
+        };
+        const todayStart = new Date();
+        todayStart.setUTCHours(0, 0, 0, 0);
+        const [todayStats, totalStats] = await Promise.all([aggregateStats({ updatedAt: { $gte: todayStart, $lt: new Date(todayStart.getTime() + 86400000) } }), aggregateStats({})]);
+        const data = { todayWithdrawalAmount: todayStats.totalWithdrawalAmount, totalWithdrawalAmount: totalStats.totalWithdrawalAmount };
+        return data;
+    }
+
+    static async updateWithdrawalById(id, updateData) { return await Withdrawal.findByIdAndUpdate(id, updateData, { new: true }); }
 
     static async deleteWithdrawalById(id) { return await Withdrawal.findByIdAndDelete(id); }
 

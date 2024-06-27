@@ -10,15 +10,11 @@ import url from 'url';
 // redis.on('connect', () => console.log('Connected to Redis server.'));
 // export { redis };
 
-//Images uploader
+// Images uploader
 const FILE_TYPE_MAP = { 'image/png': 'png', 'image/jpeg': 'jpeg', 'image/jpg': 'jpg' };
-
 const getDestination = (req, file, cb) => {
-    const dest = req.url.includes('User') ? 'profileImages' :
-        req.url.includes('Game') ? 'gameImages' :
-            req.url.includes('Banner') ? 'bannerImages' :
-                req.url.includes('Bank') ? 'bankQRCode' :
-                    'uploads';
+    const paths = { profileImages: ['createUser', 'changeUserImageByUserId'], gameImages: ['createAvailableGame', 'updateAvailableGameByGameId'], bannerImages: ['createBanner', 'updateBannerById'], bankQRCode: ['createBankDetails', 'updateBankDetailsByUserIdAndSaveAs'], paymentProof: ['createRechargeByUserId'] };
+    const dest = Object.keys(paths).find( key => paths[key].some(value => req.url.includes(value)) ) || 'uploads';
     const isValidFileType = FILE_TYPE_MAP[file.mimetype];
     cb(isValidFileType ? null : new Error('Invalid image type'), `src/public/${dest}`);
 };

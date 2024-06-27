@@ -7,7 +7,7 @@ const DepositBonusSchema = new Schema({
     startDate: { type: Date, required: true },
     endDate: { type: Date, required: true },
     deal: { type: Number, required: true },
-    status: { type: String, enum: { values: ['Active', 'Deactive'], message: 'OfferStatus must be one of: Active or Deactive' }, required: true }
+    status: { type: String, required: true }
 }, { timestamps: true });
 
 DepositBonusSchema.set('toJSON', {

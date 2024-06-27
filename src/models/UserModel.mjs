@@ -24,6 +24,7 @@ const userSchema = new Schema({
     commissionAmount: { type: Number, default: 0 },
     referralAmount: { type: Number, default: 0 },
     lifetimeDepositAmount: { type: Number, default: 0 },
+    lifetimeBonusAmount: { type: Number, default: 0},
     lifetimeWithdrawalAmount: { type: Number, default: 0 },
     lifetimeReferralAmount: { type: Number, default: 0 },
     lifetimeNumberOfDeposit: { type: Number, default: 0 },
@@ -34,8 +35,7 @@ const userSchema = new Schema({
     promoCode: { type: String, default: () => Math.random().toString(36).slice(2, 10).toUpperCase() },
     referenceCode: { type: String, default: 'ADMIN0001' },
     status: { type: String, default: 'Active' },
-    otp: { type: Number, default: null },
-    bankDetails: [{ type: Schema.Types.ObjectId, ref: 'UserBankAccount' }],
+    otp: { type: Number, default: null }
 }, {
     timestamps: true,
     toJSON: {
