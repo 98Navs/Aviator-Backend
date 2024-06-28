@@ -1,5 +1,6 @@
 // src/controllers/StatementController.mjs
 import StatementRepository from '../repositories/StatementRepository.mjs';
+import UserRepository from '../repositories/UserRepository.mjs';
 import { CommonHandler, ValidationError, NotFoundError } from './CommonHandler.mjs';
 
 class StatementController{
@@ -69,6 +70,9 @@ class StatementController{
     static async statementValidation(data) {
         const { userId } = data.params;
         const { message, amount, category, type, status } = data.body;
+        
+        const user = await UserRepository.getUserByUserId(userId);
+        if (!user) { throw new NotFoundError(`User with userId: ${userId} does not exist`); }
 
         await CommonHandler.validateRequiredFields({ message, amount, category, type, status });
         await CommonHandler.validateCreditDebit(type);
@@ -76,7 +80,7 @@ class StatementController{
         await CommonHandler.validateStatementCategory(category)
         if (typeof message !== 'string') { throw new ValidationError('Message must be a string'); }
         if (typeof amount !== 'number') { throw new ValidationError('Amount must be a number'); }
-        data.body.userId = userId;
+        data.body.userId = user.userId;
 
         return data.body;
     }
