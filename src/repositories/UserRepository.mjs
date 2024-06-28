@@ -61,8 +61,6 @@ class UserRepository {
         return user;
     }
 
-    static async countUsers(query) { return await User.countDocuments(query); }
-
     static async filterUsers(filterParams, options, req) {
         const query = {};
 

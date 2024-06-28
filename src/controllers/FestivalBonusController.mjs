@@ -1,6 +1,8 @@
 // src/controllers/FestivalBonusController.mjs
 import FestivalBonusRepository from '../repositories/FestivalBonusRepository.mjs';
-import { CommonHandler, ValidationError, NotFoundError } from './CommonHandler.mjs'
+import UserRepository from '../repositories/UserRepository.mjs';
+import StatementRepository from '../repositories/StatementRepository.mjs';
+import { CommonHandler, ValidationError, NotFoundError } from './CommonHandler.mjs';
 
 class FestivalBonusController {
     static async createFestivalBonus(req, res) {
@@ -8,6 +10,25 @@ class FestivalBonusController {
             const festivalBonusData = await FestivalBonusController.festivalBonusValidation(req.body);
             const festivalBonus = await FestivalBonusRepository.createFestivalBonus(festivalBonusData);
             res.status(201).json({ status: 201, success: true, message: 'Festival bonus created successfully', festivalBonus });
+        } catch (error) {
+            CommonHandler.catchError(error, res);
+        }
+    }
+
+    static async claimActiveFestivalBonusByUserIdAndOfferId(req, res) {
+        try {
+            const { userId, offerId } = req.params;
+            const festivalBonus = await FestivalBonusRepository.getFestivalBonusByOfferId(offerId);
+            if (!festivalBonus) { throw new NotFoundError(`Festival Bonus with offerId: ${offerId} does not exist`); }
+            const user = await UserRepository.getUserByUserId(userId);
+            if (!user) { throw new NotFoundError(`User with userId: ${userId} does not exist`); }
+            user.bonusAmount += festivalBonus.deal;
+            user.lifetimeBonusAmount += festivalBonus.deal;
+            await user.save();
+
+            const createFestivalBonusStatement = { userId: user.userId, message: `Hi,${user.userName} your claimed the festival bonus offerId: ${festivalBonus.offerId}`, amount: festivalBonus.deal, category: 'Festival Bonus', type: 'credit', status: festivalBonus.bonusType };
+            await StatementRepository.createStatement(createFestivalBonusStatement);
+            res.status(200).json({ status: 200, success: true, message: `Festival bonus of offerId:${offerId} claimed by ${user.userName} successfully`, data: createFestivalBonusStatement });
         } catch (error) {
             CommonHandler.catchError(error, res);
         }
@@ -21,7 +42,7 @@ class FestivalBonusController {
             const festivalBonuses = Object.keys(filterParams).length > 0 ?
                 await FestivalBonusRepository.filterFestivalBonuses(filterParams, options, req) :
                 await FestivalBonusRepository.getAllFestivalBonuses(options, req);
-            return res.status(200).json({ status: 200, success: true, message: 'All festival bonuses fetched successfully', ...festivalBonuses });
+            res.status(200).json({ status: 200, success: true, message: 'All festival bonuses fetched successfully', ...festivalBonuses });
         } catch (error) {
             CommonHandler.catchError(error, res);
         }
@@ -41,7 +62,16 @@ class FestivalBonusController {
         try {
             const allowedBonusTypes = CommonHandler.validBonusTypes;
             const allowedStatusTypes = CommonHandler.validStatuses;
-            res.status(200).json({ status: 200, success: true, message: 'Allowed bonus types and statuses fetched successfully', data : { allowedBonusTypes, allowedStatusTypes } });
+            res.status(200).json({ status: 200, success: true, message: 'Allowed bonus types and statuses fetched successfully', data: { allowedBonusTypes, allowedStatusTypes } });
+        } catch (error) {
+            CommonHandler.catchError(error, res);
+        }
+    }
+
+    static async getActiveFestivalBonusesForToday(req, res) {
+        try {
+            const festivalBonuses = await FestivalBonusRepository.getActiveFestivalBonusesForToday();
+            res.status(200).json({ status: 200, success: true, message: 'Active festival bonuses fetched successfully', festivalBonuses });
         } catch (error) {
             CommonHandler.catchError(error, res);
         }
@@ -81,7 +111,7 @@ class FestivalBonusController {
     static async festivalBonusValidation(data, isUpdate = false) {
         const { name, bonusType, startDate, endDate, deal, status } = data;
         await CommonHandler.validateRequiredFields({ name, bonusType, startDate, endDate, deal, status });
-        
+
         if (typeof name !== 'string') { throw new ValidationError('Name must be a string'); }
         if (typeof bonusType !== 'string') { throw new ValidationError('BonusType must be a string'); }
         if (typeof startDate !== 'string') { throw new ValidationError('StartDate must be a string'); }
@@ -95,7 +125,7 @@ class FestivalBonusController {
         if (end < start) { throw new ValidationError('EndDate must be after StartDate'); }
         if (!CommonHandler.validBonusTypes.includes(bonusType)) { throw new ValidationError(`BonusType must be one of: ${CommonHandler.validBonusTypes.join(', ')} without any space`); }
         if (!CommonHandler.validStatuses.includes(status)) { throw new ValidationError(`Status must be one of: ${CommonHandler.validStatuses.join(', ')} without any space`); }
-        
+
         data.name = name.trim();
         if (!isUpdate) {
             const existingBonus = await FestivalBonusRepository.checkDuplicateName(data.name);
@@ -103,7 +133,7 @@ class FestivalBonusController {
                 throw new ValidationError('A festival bonus with the same name already exists with Active status.');
             }
         }
-        
+
         return data;
     }
 }

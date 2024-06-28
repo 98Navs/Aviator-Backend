@@ -10,18 +10,6 @@ class RechargeRepository {
 
     static async getRechargeByRechargeId(rechargeId) { return await Recharge.findOne({ rechargeId }); }
 
-    static async getRechargeDashboardStats() {
-        const aggregateStats = async (matchStage) => {
-        const [result] = await Recharge.aggregate([ { $match: { ...matchStage, status: 'Approved' } }, { $group: { _id: null, totalRechargeAmount: { $sum: '$amount' }, totalBonusAmount: { $sum: '$bonusAmount' } } } ]);
-            return result ? { totalRechargeAmount: result.totalRechargeAmount, totalBonusAmount: result.totalBonusAmount } : { totalRechargeAmount: 0, totalBonusAmount: 0 };
-        };
-        const todayStart = new Date();
-        todayStart.setUTCHours(0, 0, 0, 0);
-        const [todayStats, totalStats] = await Promise.all([ aggregateStats({ updatedAt: { $gte: todayStart, $lt: new Date(todayStart.getTime() + 86400000) } }), aggregateStats({}) ]);
-        const data = { todayRechargeAmount: todayStats.totalRechargeAmount, totalRechargeAmount: totalStats.totalRechargeAmount, todayBonusAmount: todayStats.totalBonusAmount, totalBonusAmount: totalStats.totalBonusAmount };
-        return data;
-    }
-
     static async updateRechargeByRechargeId(rechargeId, status) { return await Recharge.findOneAndUpdate({rechargeId}, status, { new: true }); }
 
     static async deleteRechargeByRechargeId(rechargeId) { return await Recharge.findOneAndDelete({rechargeId}); }

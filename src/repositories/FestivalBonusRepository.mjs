@@ -9,6 +9,14 @@ class FestivalBonusRepository {
 
     static async getFestivalBonusByOfferId(offerId) { return await FestivalBonus.findOne({ offerId }); }
 
+    static async getActiveFestivalBonusesForToday() {
+        const todayStart = new Date();
+        todayStart.setUTCHours(0, 0, 0, 0);
+        const todayEnd = new Date(todayStart);
+        todayEnd.setUTCHours(23, 59, 59, 999);
+        return await FestivalBonus.find({ $and: [{ startDate: { $lte: todayEnd } }, { endDate: { $gte: todayStart } }, { status: 'Active' }] });
+    }
+
     static async updateFestivalBonusByOfferId(offerId, festivalBonusData) { return await FestivalBonus.findOneAndUpdate({ offerId }, festivalBonusData, { new: true }); }
 
     static async deleteFestivalBonusByOfferId(offerId) { return await FestivalBonus.findOneAndDelete({ offerId }); }
