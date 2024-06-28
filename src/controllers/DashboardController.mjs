@@ -27,6 +27,5 @@ class DashboardController {
             CommonHandler.catchError(error, res);
         }
     }
-
 }
 export default DashboardController;

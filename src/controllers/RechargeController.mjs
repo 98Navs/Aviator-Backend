@@ -56,7 +56,7 @@ class RechargeController {
         try {
             const { rechargeId } = req.params;
             await RechargeController.validateAndFetchRechargeByRechargeId(rechargeId);
-            const deletedRecharge = await RechargeRepository.deleteRechargeByRechargeId(id);
+            const deletedRecharge = await RechargeRepository.deleteRechargeByRechargeId(rechargeId);
             res.status(200).json({ status: 200, success: true, message: 'Recharge deleted successfully', data: deletedRecharge });
         } catch (error) {
             CommonHandler.catchError(error, res);
