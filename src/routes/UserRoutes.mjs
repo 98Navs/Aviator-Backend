@@ -13,6 +13,9 @@ router.post('/createUser', uploadImages.single('image'), UserRegistrationControl
 // POST /Route for user to signIn
 router.post('/signIn', UserRegistrationController.signIn);
 
+// POST /Route for user to signOut
+router.post('/signOut', Middleware.user, UserRegistrationController.signOut);
+
 // POST /Route for user to apply for forgetPassword
 router.post('/forgetPassword', UserRegistrationController.forgetPassword);
 

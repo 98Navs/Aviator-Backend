@@ -24,9 +24,18 @@ class UserRegistrationController {
             const existingUser = await UserRegistrationController.getUser(user.trim());
             if (!existingUser) { throw new NotFoundError("user not found for the provided details"); }
             if (existingUser.status != 'Active') { throw new ValidationError('User account has been deleted or suspended'); }
-            if (!bcrypt.compare(password, existingUser.password)) { throw new ValidationError('Invalid credentials.'); }
+            if (!await bcrypt.compare(password, existingUser.password)) { throw new ValidationError('Invalid credentials.'); }
             const token = await Middleware.generateToken({ userId: existingUser.userId, email: existingUser.email, objectId: existingUser._id, role: existingUser.role, accessiableGames: existingUser.accessiableGames }, res);
             res.status(200).json({ status: 200, success: true, message: 'Sign in successful!', user: { userId: existingUser.userId, email: existingUser.email, token } });
+        } catch (error) {
+            CommonHandler.catchError(error, res);
+        }
+    }
+
+    static async signOut(req, res) {
+        try {
+            res.clearCookie('jwt');
+            res.status(200).json({ status: 200, success: true, message: 'User sign out is successful!' });
         } catch (error) {
             CommonHandler.catchError(error, res);
         }

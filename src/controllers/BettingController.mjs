@@ -28,7 +28,7 @@ class BettingController {
             const totalAmount = bettings.reduce((total, bet) => total + bet.amount, 0);
             const totalWinAmount = bettings.reduce((total, bet) => total + bet.winAmount, 0);
             const profit = totalAmount - totalWinAmount;
-            res.status(200).json({ status: 200, success: true, message: 'Distribution wallet details fetched successfully', profit });
+            res.status(200).json({ status: 200, success: true, message: 'Distribution wallet details fetched successfully', data: profit });
         } catch (error) {
             CommonHandler.catchError(error, res);
         }
