@@ -18,16 +18,17 @@ class BettingRepository {
 
     static async getBetsAfterCreatedAt(createdAt) { return await Betting.find({ createdAt: { $gt: new Date(createdAt) } }); }
 
-    static async getBettingsStats(gameId = null) {
-        const matchTodayStage = gameId ? { createdAt: { $gte: new Date().setHours(0, 0, 0, 0) }, gameId } : { createdAt: { $gte: new Date().setHours(0, 0, 0, 0) } };
-        const matchAllStage = gameId ? { gameId } : {};
+    static async getBettingsStats(gameName = null) {
+        const regexGameName = gameName ? new RegExp(gameName, 'i') : null;
+        const matchTodayStage = { createdAt: { $gte: new Date().setHours(0, 0, 0, 0) }, ...(regexGameName && { gameName: regexGameName }) };
+        const matchAllStage = regexGameName ? { gameName: regexGameName } : {};
+
         const aggregateSum = async (matchStage, field) => {
-            const result = await Betting.aggregate([{ $match: matchStage }, { $group: { _id: null, total: { $sum: field } } }]);
-            return result.length > 0 ? result[0].total : 0;
-        };
-        const [todayAmount, totalAmount, todayWinAmount, totalWinAmount] = await Promise.all([aggregateSum(matchTodayStage, '$amount'), aggregateSum(matchAllStage, '$amount'), aggregateSum(matchTodayStage, '$winAmount'), aggregateSum(matchAllStage, '$winAmount')]);
-        const data = { todayAmount, totalAmount, todayWinAmount, totalWinAmount };
-        return data;
+        const result = await Betting.aggregate([ { $match: matchStage }, { $group: { _id: null, total: { $sum: field } } } ]);
+        return result.length > 0 ? result[0].total : 0; };
+
+        const [todayAmount, totalAmount, todayWinAmount, totalWinAmount] = await Promise.all([ aggregateSum(matchTodayStage, '$amount'), aggregateSum(matchAllStage, '$amount'), aggregateSum(matchTodayStage, '$winAmount'), aggregateSum(matchAllStage, '$winAmount') ]);
+        return { todayAmount, totalAmount, todayWinAmount, totalWinAmount };
     }
 
     static async getBettingDashboardStats() {

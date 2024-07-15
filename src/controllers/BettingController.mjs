@@ -17,36 +17,8 @@ class BettingController {
         }
     }
 
-    static async getAllBetting(req, res) {
-        try {
-            const { gameName, search, startDate, endDate, pageNumber = 1, perpage = 10 } = req.query;
-            const options = { page: Number(pageNumber), limit: Number(perpage) };
-            const filterParams = { gameName, search, startDate, endDate };
-            const betting = Object.keys(filterParams).length > 0 ?
-                await BettingRepository.filterBetting(filterParams, options, req) :
-                await BettingRepository.getAllBetting(options, req);
-            return res.status(200).json({ status: 200, success: true, message: 'Betting data fetched successfully', ...betting });
-        } catch (error) {
-            CommonHandler.catchError(error, res);
-        }
-    }
-
-    static async getDetailsForLatestBettingId(req, res) {
-        try {
-            const { gameId, bettingId } = req.query;
-            if (!gameId || !bettingId) throw new NotFoundError('Provide both gameId and bettingId');
-            if (!/^[0-9]{6}$/.test(bettingId)) { throw new ValidationError('Invalid bettingId format.'); }
-            const { count, bettings } = await BettingRepository.getCountAndBetsByBettingId(gameId, bettingId);
-            const totalAmount = bettings.reduce((total, bet) => total + bet.amount, 0);
-            const data = { gameId, bettingId, count, totalAmount };
-            res.status(200).json({ status: 200, success: true, message: 'Latest BettingId details fetched successfully', data });
-        } catch (error) {
-            CommonHandler.catchError(error, res);
-        }
-    }
-
     static startTime = 0;
-    static async getDistributionWalletDetails(req, res) {
+    static async distributionWalletDetails(req, res) {
         try {
             if (req.body.reset === true) {
                 const reset = await BettingRepository.getLatestBettingId();
@@ -62,13 +34,39 @@ class BettingController {
         }
     }
 
+    static async getAllBetting(req, res) {
+        try {
+            const { gameName, search, startDate, endDate, pageNumber = 1, perpage = 10 } = req.query;
+            const options = { page: Number(pageNumber), limit: Number(perpage) };
+            const filterParams = { gameName, search, startDate, endDate };
+            const betting = Object.keys(filterParams).length > 0 ?
+                await BettingRepository.filterBetting(filterParams, options, req) :
+                await BettingRepository.getAllBetting(options, req);
+            return res.status(200).json({ status: 200, success: true, message: 'Betting data fetched successfully', ...betting });
+        } catch (error) {
+            CommonHandler.catchError(error, res);
+        }
+    }
+
     static async getBettingsStats(req, res) {
         try {
             const { gameName } = req.query;
-            const gameData = await AvailableGamesRepository.getAvailableGamesByGameName(gameName);
-            const gameId = gameData ? Number(gameData.gameId) : null;
-            const data = await BettingRepository.getBettingsStats(gameId);
+            const data = await BettingRepository.getBettingsStats(gameName);
             res.status(200).json({ status: 200, success: true, message: 'Total stats fetched successfully', data });
+        } catch (error) {
+            CommonHandler.catchError(error, res);
+        }
+    }
+
+    static async getDetailsForLatestBettingId(req, res) {
+        try {
+            const { gameId, bettingId } = req.query;
+            if (!gameId || !bettingId) throw new NotFoundError('Provide both gameId and bettingId');
+            if (!/^[0-9]{6}$/.test(bettingId)) { throw new ValidationError('Invalid bettingId format.'); }
+            const { count, bettings } = await BettingRepository.getCountAndBetsByBettingId(gameId, bettingId);
+            const totalAmount = bettings.reduce((total, bet) => total + bet.amount, 0);
+            const data = { gameId, bettingId, count, totalAmount };
+            res.status(200).json({ status: 200, success: true, message: 'Latest BettingId details fetched successfully', data });
         } catch (error) {
             CommonHandler.catchError(error, res);
         }

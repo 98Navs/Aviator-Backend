@@ -8,16 +8,16 @@ const router = express.Router();
 router.post('/createBetting', BettingController.createBetting);
 
 // GET /Route to get a disribution wallet details
-router.post('/getDistributionWalletDetails', BettingController.getDistributionWalletDetails);
+router.post('/distributionWalletDetails', BettingController.distributionWalletDetails);
 
 // GET /Route to get all Betting with pagination
 router.get('/getAllBetting', BettingController.getAllBetting);
 
-// GET /Route to get a latest Betting by its betting ID
-router.get('/getDetailsForLatestBettingId', BettingController.getDetailsForLatestBettingId);
-
 // GET /Route to fetch total sums of amount and winAmount
 router.get('/getBettingsStats', BettingController.getBettingsStats);
+
+// GET /Route to get a latest Betting by its betting ID
+router.get('/getDetailsForLatestBettingId', BettingController.getDetailsForLatestBettingId);
 
 // PUT /Route to update a specific Betting by its ID
 router.put('/updateBettingById/:id', BettingController.updateBettingById);
