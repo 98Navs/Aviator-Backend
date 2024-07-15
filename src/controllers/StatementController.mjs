@@ -71,6 +71,7 @@ class StatementController{
         const { userId } = data.params;
         const { message, amount, category, type, status } = data.body;
         
+        await CommonHandler.validateSixDigitIdFormat(userId);
         const user = await UserRepository.getUserByUserId(userId);
         if (!user) { throw new NotFoundError(`User with userId: ${userId} does not exist`); }
 

@@ -66,7 +66,7 @@ class BettingRepository {
 
     static async filterBetting(filterParams, options, req) {
         const query = {};
-        if (filterParams.gameId) { query.gameId = filterParams.gameId; }
+        if (filterParams.gameName) { query.gameName = new RegExp(filterParams.gameName, 'i'); }
         if (filterParams.search) {
             const searchRegex = new RegExp(`^${filterParams.search}`, 'i');
             const isNumeric = !isNaN(filterParams.search);

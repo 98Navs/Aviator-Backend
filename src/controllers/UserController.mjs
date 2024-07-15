@@ -146,7 +146,7 @@ class UserController {
     static async validateAndFetchUserByUserId(userId) {
         await CommonHandler.validateSixDigitIdFormat(userId);
         const user = await UserRepository.getUserByUserId(userId);
-        if (!user) { throw new NotFoundError('User not found.'); }
+        if (!user) { throw new NotFoundError(`User with userId: ${userId} does not exist`); }
         return user;
     }
 }

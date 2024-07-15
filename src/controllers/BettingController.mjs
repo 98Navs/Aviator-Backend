@@ -19,9 +19,9 @@ class BettingController {
 
     static async getAllBetting(req, res) {
         try {
-            const { gameId, search, startDate, endDate, pageNumber = 1, perpage = 10 } = req.query;
+            const { gameName, search, startDate, endDate, pageNumber = 1, perpage = 10 } = req.query;
             const options = { page: Number(pageNumber), limit: Number(perpage) };
-            const filterParams = { gameId, search, startDate, endDate };
+            const filterParams = { gameName, search, startDate, endDate };
             const betting = Object.keys(filterParams).length > 0 ?
                 await BettingRepository.filterBetting(filterParams, options, req) :
                 await BettingRepository.getAllBetting(options, req);
