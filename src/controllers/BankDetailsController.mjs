@@ -35,6 +35,16 @@ class BankDetailsController {
         }
     }
 
+    static async getBankDetailsByBankId(req, res) {
+        try {
+            const { bankId } = req.params;
+            const bankDetails = await BankDetailsController.validateAndFetchBankByBankId(bankId);
+            res.status(200).json({ status: 200, success: true, message: 'User bank details fetched successfully', data: bankDetails });
+        } catch (error) {
+            CommonHandler.catchError(error, res);
+        }
+    }
+
     static async getSaveAsByUserId(req, res) {
         try {
             const { userId } = req.params;

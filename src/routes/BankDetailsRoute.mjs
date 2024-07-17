@@ -11,6 +11,9 @@ router.post('/createBankDetails', uploadImages.single('barCode'), BankDetailsCon
 // GET /Route to get all admin bank details
 router.get('/getAdminBankDetails', BankDetailsController.getAdminBankDetails);
 
+// GET /Route to get bank details by bankId
+router.get('/getBankDetailsByBankId/:bankId', BankDetailsController.getBankDetailsByBankId)
+
 // GET /Route to get all user bank details by userId
 router.get('/getUserBankDetailsByUserId/:userId', BankDetailsController.getUserBankDetailsByUserId);
 
