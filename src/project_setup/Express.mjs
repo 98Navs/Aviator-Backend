@@ -2,7 +2,8 @@
 import express from "express";
 import cors from "cors";
 import cookieParser from 'cookie-parser';
-import { UserRoutes, FestivalBonusRoutes, DepositBonusRoutes, AmountSetupRoutes, BettingRoutes, BannerRoutes, AvailableGamesRoutes, DashboardRoutes, BankDetailsRoutes, WithdrawalRoutes, RechargeRoutes, StatementRoutes } from "../routes/AllRoutes.mjs";
+import * as Routes from "../routes/AllRoutes.mjs";
+
 
 export default async function setupExpressApp() {
     const app = express();
@@ -17,18 +18,7 @@ export default async function setupExpressApp() {
     app.use(express.static('src/public'));
 
     // Mount routes
-    app.use(UserRoutes);
-    app.use(FestivalBonusRoutes);
-    app.use(DepositBonusRoutes);
-    app.use(AmountSetupRoutes);
-    app.use(BettingRoutes);
-    app.use(BannerRoutes);
-    app.use(AvailableGamesRoutes);
-    app.use(DashboardRoutes);
-    app.use(BankDetailsRoutes);
-    app.use(WithdrawalRoutes);
-    app.use(RechargeRoutes);
-    app.use(StatementRoutes);
+    Object.values(Routes).forEach(route => app.use(route));
 
     // Start the server
     app.listen(process.env.PORT, () => { console.log('Server is running on port 8002'); });
