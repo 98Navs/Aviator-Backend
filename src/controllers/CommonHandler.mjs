@@ -8,7 +8,7 @@ class CommonHandler {
     static validStatuses = ['Active', 'Deactive'];
     static validBonusTypes = ['New User Bonus', 'Festival Bonus'];
     static validUserRoles = ['admin', 'user', 'affiliate'];
-    static validUserStatuses = ['Active', 'Deactive', 'Suspended'];
+    static validUserStatuses = ['Active', 'Deactive', 'Blocked'];
     static validRechargeAndWithdrawalStatuses = ['Approved', 'Pending', 'Rejected'];
     static validCreaditDebit = ['Credit', 'Debit'];
     static validStatementCategory = ['Recharge', 'Withdrawal', 'Betting', 'Deposit Bonus', 'Festival Bonus', 'New User Bonus'];
