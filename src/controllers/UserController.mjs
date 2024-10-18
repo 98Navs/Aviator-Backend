@@ -8,9 +8,9 @@ import BankDetailsRepository from '../repositories/BankDetailsRepository.mjs';
 class UserController {
     static async getAllUsers(req, res) {
         try {
-            const { status, search, startDate, endDate, pageNumber = 1, perpage = 10 } = req.query;
+            const { role, status, search, startDate, endDate, pageNumber = 1, perpage = 10 } = req.query;
             const options = { page: Number(pageNumber), limit: Number(perpage) };
-            const filterParams = { status, search, startDate, endDate };
+            const filterParams = { role, status, search, startDate, endDate };
             const users = Object.keys(filterParams).length > 0 ?
                 await UserRepository.filterUsers(filterParams, options, req) :
                 await UserRepository.getAllUsers(options, req);

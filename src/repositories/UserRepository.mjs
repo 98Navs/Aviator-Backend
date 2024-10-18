@@ -64,6 +64,7 @@ class UserRepository {
     static async filterUsers(filterParams, options, req) {
         const query = {};
         if (filterParams.status) { query.status = new RegExp(`^${filterParams.status}`, 'i'); }
+        if (filterParams.role) { query.status = new RegExp(`^${filterParams.role}`, 'i'); }
         if (filterParams.search) {
             const searchRegex = new RegExp(`^${filterParams.search}`, 'i');
             query.$or = [
