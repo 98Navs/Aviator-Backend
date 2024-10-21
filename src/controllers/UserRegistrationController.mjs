@@ -119,6 +119,7 @@ class UserRegistrationController {
         if (password) { await CommonHandler.validatePasswordFormat(password); }
         if (role) { await CommonHandler.validateRole(role); }
         if (status) { await CommonHandler.validateStatus(status); }
+        if (status) { data.body.status = status.trim(); }
         if (!isUpdate) { if (data.file) data.body.image = `${data.protocol}://${data.get('host')}/profileImages/${data.file.filename}`; }
         if (isUpdate) { if (data.file) { throw new ValidationError('You can not change image with update user API here') }; }
 
