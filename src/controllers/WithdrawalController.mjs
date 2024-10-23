@@ -106,21 +106,21 @@ class WithdrawalController {
         else { await CommonHandler.validateRequiredFields({ status }); }
         await CommonHandler.validateTransactionFormat(transactionNo);
         await CommonHandler.validateRechargeAndWithdrawalStatus(status);
-
         const updatedWithdrawal = await WithdrawalRepository.updateWithdrawalByWithdrawalId(withdrawalId , { transactionNo, status });
 
         const user = await UserRepository.getUserByUserId(updatedWithdrawal.userId);
         if (!user) { throw new NotFoundError(`User with userId: ${updatedWithdrawal.userId} does not exist`); }
+        console.log(user);
 
         if (status === 'Approved') {
             user.lifetimeWithdrawalAmount += updatedWithdrawal.amount;
             const createWithdrawalStatement = { userId: user.userId, message: `Hi,${user.userName} your withdrawal request for withdrawalId: ${withdrawalId} has been approved`, amount: updatedWithdrawal.amount, category: 'Withdrawal', type: 'Debit', status: status };
-            await StatementRepository.createStatement(createWithdrawalStatement);
+           // await StatementRepository.createStatement(createWithdrawalStatement);
         }
         else {
             user.winningsAmount += updatedWithdrawal.amount;
             const createWithdrawalStatement = { userId: user.userId,  message: `Hi,${user.userName} your withdrawal request for withdrawalId: ${withdrawalId} has been rejected`, amount: updatedWithdrawal.amount, category: 'Withdrawal', status: status };
-            await StatementRepository.createStatement(createWithdrawalStatement);
+          //  await StatementRepository.createStatement(createWithdrawalStatement);
         }
         await user.save();
 
