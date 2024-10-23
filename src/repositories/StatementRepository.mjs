@@ -8,6 +8,8 @@ class StatementRepository{
 
     static async getAllStatement(options, req) { return await paginate(Statement, {}, options.page, options.limit, req); }
 
+    static async getStatementByTransactionId(transactionId) { return await Statement.findOne({ transactionId }); }
+    
     static async getStatementById(id) { return await Statement.findById(id); }
 
     static async getStatementsByUserId(userId, options, req) {
@@ -40,6 +42,8 @@ class StatementRepository{
     }
 
     static async updateStatementById(id, updateData) { return await Statement.findByIdAndUpdate(id, updateData, { new: true }); }
+
+    static async updateStatementByTransactionId(transactionId, updateStatementData) { return await Statement.findOneAndUpdate({ transactionId }, updateStatementData, { new: true }); }
 
     static async deleteStatementById(id) { return await Statement.findByIdAndDelete(id); }
 
