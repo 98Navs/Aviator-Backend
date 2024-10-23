@@ -108,26 +108,29 @@ class UserRegistrationController {
     }
 
     static async validateUserData(data, isUpdate = false) {
-        const { userName, email, mobile, password, referenceCode, role, status } = data.body;
+        const { image, userName, email, mobile, password, dob, referenceCode, role, status } = data.body;
 
-        if (!isUpdate) { await CommonHandler.validateRequiredFields({ userName, email, mobile, password }); }
+
+        if (!isUpdate) { await CommonHandler.validateRequiredFields({ userName, email, mobile, password, dob, image }); }
         if (userName) { await CommonHandler.validateNameFormat(userName); }
         if (userName) { data.body.userName = userName.trim(); }
         if (email) { await CommonHandler.validateEmailFormat(email); }
         if (email) { data.body.email = email.trim(); }
         if (mobile) { await CommonHandler.validateMobileFormat(mobile); }
         if (password) { await CommonHandler.validatePasswordFormat(password); }
+        if (image) { data.body.image = image };
+        if (dob) { await CommonHandler.validateDOBFormat(dob); }
+        if (dob) { data.body.dob = dob.trim(); }
         if (role) { await CommonHandler.validateRole(role); }
         if (status) { await CommonHandler.validateStatus(status); }
         if (status) { data.body.status = status.trim(); }
-        if (!isUpdate) { if (data.file) data.body.image = `${data.protocol}://${data.get('host')}/profileImages/${data.file.filename}`; }
-        if (isUpdate) { if (data.file) { throw new ValidationError('You can not change image with update user API here') }; }
 
         if (!isUpdate) {
             await UserRegistrationController.checkExistingUser(data.body.email, mobile);
             data.body.password = await CommonHandler.hashPassword(password);
             data.body.bonusAmount = await UserRegistrationController.getInitialBonus();
             data.body = await UserRegistrationController.handleReferral(data.body, referenceCode);
+
         }
         return data.body;
     }

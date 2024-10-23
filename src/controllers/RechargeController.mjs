@@ -11,7 +11,7 @@ class RechargeController {
         try {
             const rechargeData = await RechargeController.rechargeCreateValidation(req);
             const recharge = await RechargeRepository.createRecharge(rechargeData);
-            const createRechargeStatement = { userId: recharge.userId, message: `Hi,${recharge.userName} your recharge request for rechargeId: ${recharge.rechargeId} has been registered`, amount: recharge.amount, category: 'Recharge', type: 'Credit', status: recharge.status };
+            const createRechargeStatement = { transactionId: recharge.rechargeId, userId: recharge.userId, message: `Hi,${recharge.userName} your recharge request for rechargeId: ${recharge.rechargeId} has been registered`, amount: recharge.amount, category: 'Recharge', type: 'Credit', status: recharge.status };
             await StatementRepository.createStatement(createRechargeStatement);
             res.status(201).json({ status: 201, success: true, message: 'Recharge created successfully', data: recharge });
         } catch (error) {

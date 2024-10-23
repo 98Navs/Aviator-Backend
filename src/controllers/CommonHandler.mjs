@@ -26,6 +26,8 @@ class CommonHandler {
 
     static async validateMobileFormat(mobile) { if (!/^\d{10}$/.test(mobile)) { throw new ValidationError('Invalid mobile number. Must be 10 digits.'); } }
 
+    static async validateDOBFormat(dob) { if (!/^\d{2}\/\d{2}\/\d{4}$/.test(dob)) { throw new ValidationError('Invalid DOB format. Must be in the format DD/MM/YYYY (e.g., 31/01/2000).'); } }
+    
     static async validateRole(role) { if (!CommonHandler.validUserRoles.includes(role)) { throw new ValidationError(`Role must be one of: ${CommonHandler.validUserRoles.join(', ')} without any space.`); } }
 
     static async validateStatus(status) { if (!CommonHandler.validUserStatuses.includes(status)) { throw new ValidationError(`Status must be one of: ${CommonHandler.validUserStatuses.join(', ')} without any space.`); } }

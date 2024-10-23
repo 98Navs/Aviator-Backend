@@ -8,6 +8,7 @@ const userSchema = new Schema({
     email: { type: String, required: true, unique: true },
     mobile: { type: Number, required: true, unique: true },
     password: { type: String, required: true },
+    dob: { type: String, required: true},
     role: { type: String, default: 'user' },
     commissionPercentage: { type: Number, default: 0 },
     
@@ -23,6 +24,7 @@ const userSchema = new Schema({
     bonusAmount: { type: Number, default: 0 },
     commissionAmount: { type: Number, default: 0 },
     referralAmount: { type: Number, default: 0 },
+    lifetimeNumberOfBiddings: { type: Number, default: 0 },
     lifetimeDepositAmount: { type: Number, default: 0 },
     lifetimeBonusAmount: { type: Number, default: 0},
     lifetimeWithdrawalAmount: { type: Number, default: 0 },

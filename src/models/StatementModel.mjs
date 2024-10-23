@@ -2,9 +2,12 @@
 import { Schema, model } from "mongoose";
 
 const StatementSchema = new Schema({
-    userId: { type: Number, required: true},
+    transactionId : { type: Number, required: true },
+    userId: { type: Number, required: true },
+    userName: { type: String, required: true },
     message: { type: String, required: true },
-    amount: { type: Number, required: true},
+    amount: { type: Number, required: true },
+    closingBalance: { type : Number, required: true },
     category: { type: String, required: true },
     type: { type: String },
     status: { type: String, required: true}
