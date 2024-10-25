@@ -37,6 +37,9 @@ router.get('/getUserByUserId/:userId', Middleware.admin, UserController.getUserB
 // GET /Route to get all users whose role is "affiliate"
 router.get('/getAllAffiliateUsers', Middleware.admin, UserController.getAllAffiliateUsers);
 
+// GET /Route to get refferring users"
+router.get('/getRefferringUsers', Middleware.admin, UserController.getRefferringUsers);
+
 // GET /Route to get all sub registered users"
 router.get('/getAllSubRegisteredUsersByPromoCode', Middleware.affiliate, UserController.getAllSubRegisteredUsersByPromoCode);
 

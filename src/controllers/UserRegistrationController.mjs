@@ -111,7 +111,7 @@ class UserRegistrationController {
         const { image, userName, email, mobile, password, dob, referenceCode, role, status } = data.body;
 
 
-        if (!isUpdate) { await CommonHandler.validateRequiredFields({ userName, email, mobile, password, dob, image }); }
+        if (!isUpdate) { await CommonHandler.validateRequiredFields({ userName, email, mobile, password, dob }); }
         if (userName) { await CommonHandler.validateNameFormat(userName); }
         if (userName) { data.body.userName = userName.trim(); }
         if (email) { await CommonHandler.validateEmailFormat(email); }

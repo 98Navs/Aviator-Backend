@@ -21,6 +21,8 @@ class UserRepository {
 
     static async getUserByUserId(userId) { return await User.findOne({ userId }); }
 
+    static async getRefferringUsers() { return await User.find({ numberOfReferrals: { $gte: 1 }, role: { $ne: 'admin' } }).sort({ numberOfReferrals: -1 }); }
+
     static async getAllUsersDataInCSV() {
         const users = await User.find({}).lean();
         return users.map(user => {

@@ -52,6 +52,15 @@ class UserController {
         }
     }
 
+    static async getRefferringUsers(req, res) {
+        try {
+            const refferingUsers = await UserRepository.getRefferringUsers();
+            return res.status(200).json({ status: 200, success: true, message: 'Fetched all reffering users successfully', data: refferingUsers });
+        } catch (error) {
+            CommonHandler.catchError(error, res);
+        }
+    }
+
     static async getAllowedRolesAndStatusTypes(req, res) {
         try {
             const allowedRolesTypes = CommonHandler.validUserRoles;
