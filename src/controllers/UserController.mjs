@@ -54,8 +54,10 @@ class UserController {
 
     static async getRefferringUsers(req, res) {
         try {
-            const refferingUsers = await UserRepository.getRefferringUsers();
-            return res.status(200).json({ status: 200, success: true, message: 'Fetched all reffering users successfully', data: refferingUsers });
+            const { pageNumber = 1, perpage = 10 } = req.query;
+            const options = { page: Number(pageNumber), limit: Number(perpage) };
+            const refferingUsers = await UserRepository.getRefferringUsers(options, req);
+            return res.status(200).json({ status: 200, success: true, message: 'Fetched all reffering users successfully', ...refferingUsers });
         } catch (error) {
             CommonHandler.catchError(error, res);
         }

@@ -31,17 +31,9 @@ const storage = multer.diskStorage({
 export const uploadImages = multer({ storage });
 
 //Pagination
-export const generatePaginationUrls = (req, page, totalPages, limit) => {
-    const baseUrl = url.format({ protocol: req.protocol, host: req.get('host'), pathname: req.originalUrl.split('?')[0] });
-    return {
-        prepage: page > 1 ? `${baseUrl}?page=${page - 1}&limit=${limit}` : null,
-        nextpage: page < totalPages ? `${baseUrl}?page=${page + 1}&limit=${limit}` : null,
-    };
-};
-
-export const paginate = async (model, query, page, limit, req) => {
+export const paginate = async (model, query, page, limit, req, sort = {}) => {
     const skip = (page - 1) * limit;
-    const [data, totalDocuments] = await Promise.all([ model.find(query).skip(skip).limit(limit).exec(), model.countDocuments(query) ]);
+    const [data, totalDocuments] = await Promise.all([ model.find(query).sort(sort).skip(skip).limit(limit).exec(), model.countDocuments(query) ]);
     const pages = Math.ceil(totalDocuments / limit);
     const nextPageUrl = page < pages ? `${req.baseUrl}${req.path}?pageNumber=${page + 1}&perpage=${limit}` : null;
     return { data, total: totalDocuments, pageNumber: page, nextPageUrl, page, pages, perpage: limit };
