@@ -5,7 +5,7 @@ import { CommonHandler, ValidationError, NotFoundError } from './CommonHandler.m
 class AvailableGamesController {
     static async createAvailableGame(req, res) {
         try {
-            const availableGamesData = await AvailableGamesController.availableGamesValidation(req);
+            const availableGamesData = await AvailableGamesController.availableGamesValidation(req.body);
             const availableGames = await AvailableGamesRepository.createAvailableGames(availableGamesData);
             res.status(201).json({ status: 201, success: true, message: 'Available games created successfully', availableGames });
         } catch (error) {
@@ -60,7 +60,7 @@ class AvailableGamesController {
         try {
             const { gameId } = req.params;
             await AvailableGamesController.validateAndFetchAvailableGameByGameId(gameId);
-            const availableGamesData = await AvailableGamesController.availableGamesValidation(req, true);
+            const availableGamesData = await AvailableGamesController.availableGamesValidation(req.body, true);
             const updatedAvailableGames = await AvailableGamesRepository.updateAvailableGamesByGameId(gameId, availableGamesData);
             res.status(200).json({ status: 200, success: true, message: 'Available game updated successfully', updatedAvailableGames });
         } catch (error) {
@@ -88,26 +88,28 @@ class AvailableGamesController {
     }
 
     static async availableGamesValidation(data, isUpdate = false) {
-        const { name, description, status } = data.body;
-        const images = data.files;
+        const { name, description, images, status } = data;
 
-        await CommonHandler.validateRequiredFields({ name, description, status });
+        await CommonHandler.validateRequiredFields({ name, description, images, status });
 
         if (typeof name !== 'string') { throw new ValidationError('Name must be a string'); }
+        if (!isUpdate && await AvailableGamesRepository.checkDuplicateGameName(data.name)) { throw new ValidationError('A game with the same name already exists.'); }
         if (typeof description !== 'string') { throw new ValidationError('Description must be a string'); }
         if (typeof status !== 'string') { throw new ValidationError('Status must be a string'); }
         if (!CommonHandler.validStatusForGames.includes(status)) { throw new ValidationError(`Status must be one of: ${CommonHandler.validStatusForGames.join(', ')} without any space`); }
-        if (images.length === 0 || images.length > 5) { throw new ValidationError('Atleast one image is required and maximum 5 images, key is images.'); }
 
-        data.body.name = name.trim();
-        data.body.description = description.trim();
-        data.body.images = images.map(image => `${data.protocol}://${data.get('host')}/gameImages/${image.filename}`);
+        if (!Array.isArray(images)) { throw new ValidationError('Images must be provided as an array'); }
+        if (images.length === 0 || images.length > 5) { throw new ValidationError('At least one image is required, with a maximum of 5 images.'); }
 
-        if (!isUpdate) {
-            const existingName = await AvailableGamesRepository.checkDuplicateGameName(data.body.name);
-            if (existingName) { throw new ValidationError('A game with the same name already exists.'); }
-        }
-        return data.body;
+        images.forEach((image, index) => { if (typeof image !== 'string' || !image.trim()) { throw new ValidationError(`Image at index ${index} must be a non-empty string`); } });
+
+        Object.assign(data, {
+            name: name.trim(),
+            description: description.trim(),
+            images: images.map(img => img.trim())
+        });
+
+        return data;
     }
 }
 

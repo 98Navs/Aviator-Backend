@@ -1,8 +1,6 @@
 // src/repositories/AvailableGamesRepository.mjs
 import AvailableGames from '../models/AvailableGamesModel.mjs';
 import { paginate } from '../project_setup/Utils.mjs';
-import fs from 'fs';
-import path from 'path';
 
 class AvailableGamesRepository {
     static async createAvailableGames(availableGamesData) { return await AvailableGames.create(availableGamesData); }
@@ -16,25 +14,10 @@ class AvailableGamesRepository {
     static async getAllGameNames() { return await AvailableGames.distinct('name'); }
 
     static async checkDuplicateGameName(name) { return await AvailableGames.findOne({ name: new RegExp(`^${name}`, 'i') }); }
+    
+    static async updateAvailableGamesByGameId(gameId, availableGamesData) { return await AvailableGames.findOneAndUpdate({ gameId }, availableGamesData, { new: true }); }
 
-    static async updateAvailableGamesByGameId(gameId, availableGamesData) {
-        const existingGame = await AvailableGames.findOne({ gameId });
-        await Promise.all(existingGame.images.map(image =>
-            fs.promises.unlink(path.join('src/public/gameImages', path.basename(image))).catch(err => {
-                if (err.code !== 'ENOENT') throw err;
-            })
-        ));
-        return await AvailableGames.findOneAndUpdate({ gameId }, availableGamesData, { new: true });
-    }
-
-    static async deleteAvailableGamesByGameId(gameId, availableGames) {
-        await Promise.all(availableGames.images.map(image =>
-            fs.promises.unlink(path.join('src/public/gameImages', path.basename(image))).catch(err => {
-                if (err.code !== 'ENOENT') throw err;
-            })
-        ));
-        return await AvailableGames.findOneAndDelete({ gameId });
-    }
+    static async deleteAvailableGamesByGameId(gameId) { return await AvailableGames.findOneAndDelete({ gameId }); }
 
     static async filterAvailableGames(filterParams, options, req) {
         const query = {};
