@@ -88,17 +88,19 @@ class AvailableGamesController {
     }
 
     static async availableGamesValidation(data, isUpdate = false) {
-        const { name, status } = data.body;
+        const { name, description, status } = data.body;
         const images = data.files;
 
         await CommonHandler.validateRequiredFields({ name, status });
 
         if (typeof name !== 'string') { throw new ValidationError('Name must be a string'); }
+        if (typeof description !== 'string') { throw new ValidationError('Description must be a string'); }
         if (typeof status !== 'string') { throw new ValidationError('Status must be a string'); }
         if (!CommonHandler.validStatusForGames.includes(status)) { throw new ValidationError(`Status must be one of: ${CommonHandler.validStatusForGames.join(', ')} without any space`); }
         if (images.length === 0 || images.length > 5) { throw new ValidationError('Atleast one image is required and maximum 5 images, key is images.'); }
 
         data.body.name = name.trim();
+        data.body.description = description.trim();
         data.body.images = images.map(image => `${data.protocol}://${data.get('host')}/gameImages/${image.filename}`);
 
         if (!isUpdate) {
