@@ -91,7 +91,7 @@ class AvailableGamesController {
         const { name, description, status } = data.body;
         const images = data.files;
 
-        await CommonHandler.validateRequiredFields({ name, status });
+        await CommonHandler.validateRequiredFields({ name, description, status });
 
         if (typeof name !== 'string') { throw new ValidationError('Name must be a string'); }
         if (typeof description !== 'string') { throw new ValidationError('Description must be a string'); }
