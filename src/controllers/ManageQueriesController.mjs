@@ -73,12 +73,13 @@ class ManageQueriesController{
         const { priority, description, status } = data.body;
         const userId = data.user.userId;
 
-        await CommonHandler.validateRequiredFields({ priority, description });
+        await CommonHandler.validateRequiredFields({ description });
         if (!Array.isArray(description) || description.length === 0) { throw new ValidationError('Description must be a non-empty array'); }
         
         const [user, admin] = await Promise.all([UserRepository.getUserByUserId(userId), UserRepository.getUserByEmail('admin@scriza.in')]);
         if (!user || !admin) { throw new NotFoundError('User or Admin profile not found') };
         if (status) { data.body.status = status; }
+        if (priority) { data.body.priority = priority; }
 
         return { ...data.body, userId: user.userId, userName: user.userName, email: user.email, assignedTo: admin.userName, priority, description };
     }
