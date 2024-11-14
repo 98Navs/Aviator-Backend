@@ -93,7 +93,7 @@ class AvailableGamesController {
         await CommonHandler.validateRequiredFields({ name, description, images, status });
 
         if (typeof name !== 'string') { throw new ValidationError('Name must be a string'); }
-        if (!isUpdate && await AvailableGamesRepository.checkDuplicateGameName(data.name)) { throw new ValidationError('A game with the same name already exists.'); }
+        if (!isUpdate && await AvailableGamesRepository.checkDuplicateGameName(name)) { throw new ValidationError('A game with the same name already exists.'); }
         if (typeof description !== 'string') { throw new ValidationError('Description must be a string'); }
         if (typeof status !== 'string') { throw new ValidationError('Status must be a string'); }
         if (!CommonHandler.validStatusForGames.includes(status)) { throw new ValidationError(`Status must be one of: ${CommonHandler.validStatusForGames.join(', ')} without any space`); }

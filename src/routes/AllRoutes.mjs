@@ -11,5 +11,6 @@ export { default as DashboardRoutes } from './DashboardRoutes.mjs';
 export { default as BankDetailsRoutes } from './BankDetailsRoute.mjs';
 export { default as WithdrawalRoutes } from './WithdrawalRoutes.mjs';
 export { default as RechargeRoutes } from './RechargeRoutes.mjs';
-export { default as StatementRoutes } from './StatementRoutes.mjs'
-export { default as ManageQueriesRoutes } from './ManageQueriesRoutes.mjs'
+export { default as StatementRoutes } from './StatementRoutes.mjs';
+export { default as ManageQueriesRoutes } from './ManageQueriesRoutes.mjs';
+export { default as UploadCharactersRoutes } from './UploadCharactersRoutes.mjs'
